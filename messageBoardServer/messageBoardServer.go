@@ -8,10 +8,15 @@ import (
 	"math/rand"
 	"strings"
 	"sync"
+
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var (
-	randMu sync.Mutex
+	randMu           sync.Mutex
+	topicErr         = fmt.Errorf("topic does not exist")
+	userExistsErr    = fmt.Errorf("user does not exist")
+	messageExistsErr = fmt.Errorf("message does not exist")
 )
 
 // generate uint32 uids
@@ -80,4 +85,56 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 	message := &protobufRazpravljalnica.Message{Id: messageId, TopicId: topicId, UserId: userId, Text: in.Text}
 	server.MessageStorage.Put(messageId, message)
 	return &protobufRazpravljalnica.Message{Id: messageId, TopicId: topicId, UserId: userId, Text: in.Text}, nil
+}
+
+func (server *MessageBoardServer) UpdateMessage(ctx context.Context, in *protobufRazpravljalnica.UpdateMessageRequest) (*protobufRazpravljalnica.Message, error) {
+	if _, ok := server.UserStorage.GetValByKey(in.UserId); !ok {
+		return nil, fmt.Errorf("user does not exist")
+	}
+	if _, ok := server.TopicStorage.GetValByKey(in.TopicId); !ok {
+		return nil, topicErr
+	}
+	if msg, ok := server.MessageStorage.GetValByKey(in.MessageId); !ok {
+		return nil, fmt.Errorf("message does not exsist")
+	} else {
+		msg.Text = in.Text
+		server.MessageStorage.Put(in.MessageId, msg)
+		return nil, nil
+	}
+}
+
+func (server *MessageBoardServer) DeleteMessage(ctx context.Context, in *protobufRazpravljalnica.DeleteMessageRequest) (emptypb.Empty, error) {
+	server.MessageStorage.Delete(in.MessageId)
+	return emptypb.Empty{}, nil
+}
+
+func (server *MessageBoardServer) ListTopics(ctx context.Context, empty *emptypb.Empty) *protobufRazpravljalnica.ListTopicsResponse {
+	topics := server.TopicStorage.GetAllValues()
+	listTopicResponse := &protobufRazpravljalnica.ListTopicsResponse{Topics: topics}
+	return listTopicResponse
+}
+
+func (server *MessageBoardServer) LikeMessage(ctx context.Context, in *protobufRazpravljalnica.LikeMessageRequest) (*protobufRazpravljalnica.Message, error) {
+	if _, ok := server.UserStorage.GetValByKey(in.UserId); !ok {
+		return nil, userExistsErr
+	}
+	if _, ok := server.TopicStorage.GetValByKey(in.TopicId); !ok {
+		return nil, topicErr
+	}
+
+	message, ok := server.MessageStorage.GetValByKey(in.MessageId)
+	if !ok {
+		return nil, messageExistsErr
+	}
+
+	message.Likes++
+	server.MessageStorage.Put(in.MessageId, message)
+
+	return message, nil
+}
+
+func (server *MessageBoardServer) GetMessages(ctx context.Context, in *protobufRazpravljalnica.GetMessagesRequest) *protobufRazpravljalnica.GetMessagesResponse {
+	messages := server.MessageStorage.GetAllValues()
+	getMessagesResponse := protobufRazpravljalnica.GetMessagesResponse{Messages: messages}
+	return &getMessagesResponse
 }
