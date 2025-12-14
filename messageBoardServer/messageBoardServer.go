@@ -17,10 +17,12 @@ var (
 	topicErr         = fmt.Errorf("topic does not exist")
 	userExistsErr    = fmt.Errorf("user does not exist")
 	messageExistsErr = fmt.Errorf("message does not exist")
+	emptyTopicErr    = fmt.Errorf("topic can not be empty")
+	emptyUsernameErr = fmt.Errorf("username can not be empty")
 )
 
 // generate uint32 uids
-func GenerateRand32[T any](s *storage.LockableMap[int64, T]) int64 {
+func GenerateRand32[T comparable](s *storage.LockableMap[int64, T]) int64 {
 	randMu.Lock()
 	id := rand.Uint32()
 	defer randMu.Unlock()
@@ -52,7 +54,7 @@ func NewMessageBoardServer() *MessageBoardServer {
 // returns error if the user name consists of spaces
 func (server *MessageBoardServer) CreateUser(ctx context.Context, in *protobufRazpravljalnica.CreateUserRequest) (*protobufRazpravljalnica.User, error) {
 	if strings.TrimSpace(in.Name) == "" {
-		return nil, fmt.Errorf("username can not consist of empty spaces")
+		return nil, emptyTopicErr
 	}
 	id := GenerateRand32(server.UserStorage)
 	user := &protobufRazpravljalnica.User{Id: id, Name: in.Name}
@@ -62,7 +64,7 @@ func (server *MessageBoardServer) CreateUser(ctx context.Context, in *protobufRa
 
 func (server *MessageBoardServer) CreateTopic(ctx context.Context, in *protobufRazpravljalnica.CreateTopicRequest) (*protobufRazpravljalnica.Topic, error) {
 	if name := strings.TrimSpace(in.Name); name == "" {
-		return nil, fmt.Errorf("username can not consist of empty spaces")
+		return nil, emptyTopicErr
 	} else {
 		id := GenerateRand32(server.TopicStorage)
 		topic := &protobufRazpravljalnica.Topic{Name: name, Id: id}

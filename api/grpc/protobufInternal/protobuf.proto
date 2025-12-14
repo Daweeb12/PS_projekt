@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package razpravljalnica;
+
+option go_package = "/razpravljalnica";
+
+//import "google/protobuf/empty.proto";
+//import "google/protobuf/timestamp.proto";
+///////////////////////////////////////////////////////
+//Chain node types 
+///////////////////////////////////////////////////////
+//
+message Node{
+  int64 id = 1 ;
+}
+service ChainNode{
+  rpc HeartBeat(HearthBeatRequest) returns (HearthBeatResponse);
+}
+
+///////////////////////////////////////////////////////
+//Chain node requests 
+///////////////////////////////////////////////////////
+
+message HearthBeatResponse {
+  int64 id  =1 ; 
+}
+
+message HearthBeatRequest {
+  int64 id = 1 ; 
+}

@@ -1,7 +1,9 @@
 package main
 
 import (
+	protobufInt "PS_projekt/api/grpc/protobufInternal"
 	protobufRaz "PS_projekt/api/grpc/protobufRazpravljalnica"
+	"PS_projekt/internal"
 	messageboardserver "PS_projekt/messageBoardServer"
 	"fmt"
 	"net"
@@ -27,5 +29,25 @@ func Server(url string) {
 	if err := grpcServer.Serve(lis); err != nil {
 		panic(err)
 	}
+
+}
+
+func ChainNodeServer(url string, id int64) error {
+	grpcServer := grpc.NewServer()
+	internalNodeServer := internal.NewChainNode(id, url)
+	protobufInt.RegisterChainNodeServer(grpcServer, internalNodeServer)
+	hostname, err := os.Hostname()
+	if err != nil {
+		return err
+	}
+	ls, err := net.Listen("tcp", url)
+	if err != nil {
+		return err
+	}
+	if err := grpcServer.Serve(ls); err != nil {
+		return err
+	}
+	fmt.Println(hostname, ": listening on ", url)
+	return nil
 
 }
