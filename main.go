@@ -1,36 +1,29 @@
 package main
 
 import (
-	"PS_projekt/api/grpc/protobufInternal"
-	"PS_projekt/internal"
 	"flag"
 	"fmt"
 )
 
 func main() {
-	p := flag.Int("p", 9000, "port where the server runs")
-	idPtr := flag.Int("id", 0, "id of the chain node")
-	port := *p
+	idPtr := flag.Int64("id", 0, "id of the node")
+	portPrt := flag.Int64("p", 9000, "port where the node will run")
+	flag.Parse()
 	id := *idPtr
-
-	if id != 0 {
-		//start control server
-		if err := ChainNodeServer(url, id); err != nil {
-			panic(err)
-		}
+	port := *portPrt
+	fmt.Println("port", port)
+	fmt.Println("id", id)
+	url := fmt.Sprintf("localhost:%d", port)
+	masterUrl := fmt.Sprintf("localhost:%d", 9000)
+	if id == 0 {
+		//add node to chain
+		StartMasterServer(masterUrl, 0)
+	} else if id < 5 {
+		AddNode(url, masterUrl, id)
 	} else {
-		//start node server
+		//start master node server
+		UpdateClient(masterUrl)
 
 	}
 
-}
-
-func InitChainNodes(nodesNum, id, port int) {
-	chainNodes := []*internal.ChainNode{}
-	for i := range nodesNum {
-		portNumber := port + i
-		url := fmt.Sprintf("http://localhost:%d", portNumber)
-		chainNode := internal.NewChainNode(int64(i), url)
-		chainNodes = append(chainNodes, chainNode)
-	}
 }

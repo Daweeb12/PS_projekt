@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package razpravljalnica;
+
+option go_package = "/razpravljalnica";
+
+//import "google/protobuf/empty.proto";
+//import "google/protobuf/timestamp.proto";
+///////////////////////////////////////////////////////
+//Chain node types 
+///////////////////////////////////////////////////////
+//
+message Node{
+  int64 id = 1 ;
+}
+service ChainNode{
+  rpc HeartBeat(HearthBeatRequest) returns (HearthBeatResponse);
+  rpc AssignChainNode(AssignRequest) returns (ACK);
+  rpc Forward(ForwardRequest) returns (ACK);
+}
+
+///////////////////////////////////////////////////////
+//MasterNode
+///////////////////////////////////////////////////////
+service MasterNode{
+  rpc SignalAlive(SignalAliveRequest)returns (SignalAliveResponse);
+  rpc Update(UpdateRequest) returns (ACK);
+}
+message SignalAliveRequest {
+  int64 nodeId = 1 ; 
+  string nodeUrl = 2 ;
+}
+
+message SignalAliveResponse {
+  string masterUrl = 1 ; 
+}
+///////////////////////////////////////////////////////
+//Chain node requests 
+///////////////////////////////////////////////////////
+
+message HearthBeatResponse {
+  int64 id  =1 ; 
+}
+
+message HearthBeatRequest {
+  int64 id = 1 ; 
+}
+
+
+
+message ACK{
+  bool success = 1 ; 
+}
+
+
+
+message AssignRequest {
+  string nextUrl =1;
+  string prevUrl =2;
+  int64 id =3 ;
+}
+
+message ForwardRequest{
+}
+
+message UpdateRequest{
+   int64 data =1 ; 
+}
