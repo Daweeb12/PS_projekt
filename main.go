@@ -19,7 +19,7 @@ func main() {
 		//add node to chain
 		StartMasterServer(masterUrl, 0)
 	} else if id < 5 {
-		AddNode(url, masterUrl, id)
+		AddMsgBoardServer(url, masterUrl, id)
 	} else {
 		//start master node server
 		UpdateClient(masterUrl)

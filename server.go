@@ -3,7 +3,8 @@ package main
 import (
 	protobufInt "PS_projekt/api/grpc/protobufInternal"
 	protobufRaz "PS_projekt/api/grpc/protobufRazpravljalnica"
-	"PS_projekt/internal"
+	// chain_node "PS_projekt/craq/chain_node"
+	master_node "PS_projekt/craq/master_node"
 	messageboardserver "PS_projekt/messageBoardServer"
 	"context"
 	"fmt"
@@ -17,13 +18,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+var (
+// flag used to check whether a new tail is being added an syncing the existing data
+)
+
 func Server(url string) {
 	lis, err := net.Listen("tcp", url)
 	if err != nil {
 		panic(err)
 	}
 	grpcServer := grpc.NewServer()
-	msgBoardServer := messageboardserver.NewMessageBoardServer()
+	msgBoardServer := messageboardserver.NewMessageBoardServer(0)
 	protobufRaz.RegisterMessageBoardServer(grpcServer, msgBoardServer.MessageBoardServer)
 	if hostname, err := os.Hostname(); err != nil {
 		panic(err)
@@ -37,11 +42,11 @@ func Server(url string) {
 
 }
 
-func AddNode(nodeUrl, masterUrl string, id int64) {
+func AddMsgBoardServer(nodeUrl, masterUrl string, id int64) {
 	ch := make(chan struct{})
 	grpcServer := grpc.NewServer()
-	internalNodeServer := internal.NewChainNode(nil, id, nodeUrl)
-	protobufInt.RegisterChainNodeServer(grpcServer, internalNodeServer)
+	internalNodeServer := messageboardserver.NewMessageBoardServer(id)
+	protobufRaz.RegisterMessageBoardServer(grpcServer, internalNodeServer)
 	ls, err := net.Listen("tcp", nodeUrl)
 	if err != nil {
 		panic(err)
@@ -57,16 +62,15 @@ func AddNode(nodeUrl, masterUrl string, id int64) {
 }
 
 func StartMasterServer(url string, id int64) {
-
 	grpcServer := grpc.NewServer()
-	masterNode := internal.NewMasterNode(id, url)
+	masterNode := master_node.NewMasterNode(id, url)
 	protobufInt.RegisterMasterNodeServer(grpcServer, masterNode)
 	ls, err := net.Listen("tcp", url)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("master server listening on ", url)
-	go func(masterNode *internal.MasterNode) {
+	go func(masterNode *master_node.MasterNode) {
 		for {
 			fmt.Println("head", masterNode.Head)
 			fmt.Println("tail ", masterNode.Tail)
