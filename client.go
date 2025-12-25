@@ -1,6 +1,7 @@
 package main
 
 import (
+	protobufInt "PS_projekt/api/grpc/protobufInternal"
 	razpravljalnica "PS_projekt/api/grpc/protobufRazpravljalnica"
 	"bufio"
 	"context"
@@ -388,4 +389,62 @@ func info() {
 	fmt.Println(" 10. exit 						- Exit the application")
 	fmt.Println(" 11. help 						- Get command list")
 	fmt.Println()
+}
+
+// connect to master node and fetch head/tail. forward small periodic request to the head.
+func UpdateClient(url string) {
+	conn, err := grpc.NewClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	grpcClient := protobufInt.NewMasterNodeClient(conn)
+
+	for {
+		headInfo, tailInfo, err := fetchDetails(grpcClient)
+		if err != nil {
+			fmt.Println(err)
+			time.Sleep(time.Second)
+			continue
+		}
+		fmt.Println("HEAD: ", headInfo)
+		fmt.Println("TAIL: ", tailInfo)
+		fmt.Println()
+		headConn, err := grpc.NewClient(headInfo.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			fmt.Println(err)
+			time.Sleep(time.Second)
+			continue
+		}
+
+		// close connection afrerwards
+		headClient := razpravljalnica.NewMessageBoardClient(headConn)
+		if user, err := sendCreateUserReq(headClient); err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println("CREATE USER ", user)
+		}
+
+		headConn.Close()
+		time.Sleep(time.Second * 2)
+	}
+}
+
+func fetchDetails(grpcClient protobufInt.MasterNodeClient) (*protobufInt.NodeData, *protobufInt.NodeData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	clusterInfo, err := grpcClient.GetClusterState(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, nil, err
+	}
+	headInfo, tailInfo := clusterInfo.Head, clusterInfo.Tail
+	return headInfo, tailInfo, nil
+}
+
+func sendCreateUserReq(grpcClient razpravljalnica.MessageBoardClient) (*razpravljalnica.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	createUserReq := &razpravljalnica.CreateUserRequest{Name: "david"}
+	user, err := grpcClient.CreateUser(ctx, createUserReq)
+	return user, err
 }

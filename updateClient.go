@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	protobufInt "PS_projekt/api/grpc/protobufInternal"
 	pbRaz "PS_projekt/api/grpc/protobufRazpravljalnica"
@@ -66,3 +67,4 @@ func sendCreateUserReq(grpcClient pbRaz.MessageBoardClient) (*pbRaz.User, error)
 	user, err := grpcClient.CreateUser(ctx, (*pbRaz.CreateUserRequest)(createUserReq))
 	return user, err
 }
+*/

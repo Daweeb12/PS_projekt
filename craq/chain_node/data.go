@@ -26,5 +26,5 @@ package chain_node
 // 	return data.Version + 1
 // }
 
-//rpc calls to sync the old tail and the new tail
-func p (){}
+// rpc calls to sync the old tail and the new tail
+func p() {}
