@@ -29,18 +29,21 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("subscribed, waiting for events")
+
 	for {
 		ev, err := stream.Recv()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "stream closed:", err)
 			return
 		}
+
 		msgId := int64(0)
 		txt := ""
 		if ev.Message != nil {
 			msgId = ev.Message.GetId()
 			txt = ev.Message.GetText()
 		}
+
 		fmt.Printf("EVENT: op=%v seq=%d msg_id=%v text=%q\n", ev.Op, ev.SequenceNumber, msgId, txt)
 	}
 }

@@ -196,7 +196,6 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 			info()
 			return
 		case "subscribe":
-			// subscribe [topic_id ...]  -- no topic ids means subscribe to all
 			var topicIds []int64
 			if len(parts) > 1 {
 				for _, p := range parts[1:] {
@@ -217,8 +216,8 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 	}
 }
 
+// background so subscription persists until end of process
 func startSubscribeBackground(client *razpravljalnica.MessageBoardClient, topicIds []int64) {
-	// use background context so subscription persists until process exit
 	ctx := context.Background()
 	req := &razpravljalnica.SubscribeTopicRequest{TopicId: topicIds, FromMessageId: 0}
 	stream, err := (*client).SubscribeTopic(ctx, req)
