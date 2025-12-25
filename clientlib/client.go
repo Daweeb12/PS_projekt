@@ -195,11 +195,54 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 		case "help":
 			info()
 			return
+		case "subscribe":
+			// subscribe [topic_id ...]  -- no topic ids means subscribe to all
+			var topicIds []int64
+			if len(parts) > 1 {
+				for _, p := range parts[1:] {
+					id, err := strconv.ParseInt(p, 10, 64)
+					if err != nil {
+						fmt.Printf("invalid topic id: %s\n", p)
+						continue
+					}
+					topicIds = append(topicIds, id)
+				}
+			}
+			go startSubscribeBackground(client, topicIds)
 		default:
 			fmt.Println("Unknown command. Type 'help' for available commands.")
 		}
 
 		cancel()
+	}
+}
+
+func startSubscribeBackground(client *razpravljalnica.MessageBoardClient, topicIds []int64) {
+	// use background context so subscription persists until process exit
+	ctx := context.Background()
+	req := &razpravljalnica.SubscribeTopicRequest{TopicId: topicIds, FromMessageId: 0}
+	stream, err := (*client).SubscribeTopic(ctx, req)
+	if err != nil {
+		fmt.Printf("subscribe failed: %v\n", err)
+		return
+	}
+	fmt.Printf("subscription started for topics=%v\n", topicIds)
+	for {
+		ev, err := stream.Recv()
+		if err != nil {
+			fmt.Printf("subscription ended: %v\n", err)
+			return
+		}
+		if ev == nil {
+			continue
+		}
+		msgId := int64(0)
+		txt := ""
+		if ev.Message != nil {
+			msgId = ev.Message.GetId()
+			txt = ev.Message.GetText()
+		}
+		fmt.Printf("EVENT: op=%v seq=%d msg_id=%v text=%q\n", ev.Op, ev.SequenceNumber, msgId, txt)
 	}
 }
 
@@ -309,13 +352,14 @@ func info() {
 	fmt.Println("  1. createuser <name>        - Create a new user")
 	fmt.Println("  2. createtopic <name>       - Create a new topic")
 	fmt.Println("  3. listtopics               - List all topics")
-	fmt.Println("  4. getmessages <topic_id>   - Get messages from a topic")
-	fmt.Println("  5. postmessage <topic_id> <text>\t\t- Post a message")
-	fmt.Println("  6. likemessage <topic_id> <msg_id>\t- Like a message")
-	fmt.Println("  7. updatemessage <topic_id> <msg_id> <text>\t- Update a message")
-	fmt.Println("  8. deletemessage <topic_id> <msg_id>\t\t- Delete a message")
-	fmt.Println("  9. setuser <user_id>\t\t- Set current user ID")
-	fmt.Println(" 10. exit \t\t\t- Exit the application")
-	fmt.Println(" 11. help \t\t\t- Get command list")
+	fmt.Println("  4. subscribe <topic_id> <topic_id> ...	- List all topics")
+	fmt.Println("  5. getmessages <topic_id>   - Get messages from a topic")
+	fmt.Println("  6. postmessage <topic_id> <text>\t\t- Post a message")
+	fmt.Println("  7. likemessage <topic_id> <msg_id>\t- Like a message")
+	fmt.Println("  8. updatemessage <topic_id> <msg_id> <text>\t- Update a message")
+	fmt.Println("  9. deletemessage <topic_id> <msg_id>\t\t- Delete a message")
+	fmt.Println("  10. setuser <user_id>\t\t- Set current user ID")
+	fmt.Println(" 11. exit \t\t\t- Exit the application")
+	fmt.Println(" 12. help \t\t\t- Get command list")
 	fmt.Println()
 }
