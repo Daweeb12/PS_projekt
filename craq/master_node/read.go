@@ -1,14 +1,16 @@
 package master_node
 
 import (
-	// protobufInt "PS_projekt/api/grpc/protobufInternal"
-	// "context"
-	// "fmt"
-	// "math/rand"
+// protobufInt "PS_projekt/api/grpc/protobufInternal"
+// "context"
+// "fmt"
+// "math/rand"
 
-	// "google.golang.org/protobuf/types/known/emptypb"
+// "google.golang.org/protobuf/types/known/emptypb"
 )
-func temp(){}
+
+func temp() {}
+
 // read from a random node in the chain
 // if object is clean -> read
 // else read from tail
