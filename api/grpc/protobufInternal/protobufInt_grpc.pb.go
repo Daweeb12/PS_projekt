@@ -110,11 +110,11 @@ var ChainNode_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	MasterNode_SignalAlive_FullMethodName               = "/protobufInternal.MasterNode/SignalAlive"
-	MasterNode_ReadFromNodes_FullMethodName             = "/protobufInternal.MasterNode/ReadFromNodes"
-	MasterNode_GetClusterState_FullMethodName           = "/protobufInternal.MasterNode/GetClusterState"
-	MasterNode_GenerateRandomNodeForRead_FullMethodName = "/protobufInternal.MasterNode/GenerateRandomNodeForRead"
-	MasterNode_SignalNewTail_FullMethodName             = "/protobufInternal.MasterNode/SignalNewTail"
+	MasterNode_SignalAlive_FullMethodName        = "/protobufInternal.MasterNode/SignalAlive"
+	MasterNode_ReadFromNodes_FullMethodName      = "/protobufInternal.MasterNode/ReadFromNodes"
+	MasterNode_GetClusterState_FullMethodName    = "/protobufInternal.MasterNode/GetClusterState"
+	MasterNode_GenerateRandomNode_FullMethodName = "/protobufInternal.MasterNode/GenerateRandomNode"
+	MasterNode_SignalNewTail_FullMethodName      = "/protobufInternal.MasterNode/SignalNewTail"
 )
 
 // MasterNodeClient is the client API for MasterNode service.
@@ -124,7 +124,7 @@ type MasterNodeClient interface {
 	SignalAlive(ctx context.Context, in *SignalAliveRequest, opts ...grpc.CallOption) (*SignalAliveResponse, error)
 	ReadFromNodes(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadResponse, error)
 	GetClusterState(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetClusterStateResponse, error)
-	GenerateRandomNodeForRead(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GenerateRandomNodeResponse, error)
+	GenerateRandomNode(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GenerateRandomNodeResponse, error)
 	SignalNewTail(ctx context.Context, in *NewTailRequest, opts ...grpc.CallOption) (*NewTailResponse, error)
 }
 
@@ -163,9 +163,9 @@ func (c *masterNodeClient) GetClusterState(ctx context.Context, in *emptypb.Empt
 	return out, nil
 }
 
-func (c *masterNodeClient) GenerateRandomNodeForRead(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GenerateRandomNodeResponse, error) {
+func (c *masterNodeClient) GenerateRandomNode(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GenerateRandomNodeResponse, error) {
 	out := new(GenerateRandomNodeResponse)
-	err := c.cc.Invoke(ctx, MasterNode_GenerateRandomNodeForRead_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, MasterNode_GenerateRandomNode_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ type MasterNodeServer interface {
 	SignalAlive(context.Context, *SignalAliveRequest) (*SignalAliveResponse, error)
 	ReadFromNodes(context.Context, *ReadRequest) (*ReadResponse, error)
 	GetClusterState(context.Context, *emptypb.Empty) (*GetClusterStateResponse, error)
-	GenerateRandomNodeForRead(context.Context, *emptypb.Empty) (*GenerateRandomNodeResponse, error)
+	GenerateRandomNode(context.Context, *emptypb.Empty) (*GenerateRandomNodeResponse, error)
 	SignalNewTail(context.Context, *NewTailRequest) (*NewTailResponse, error)
 	mustEmbedUnimplementedMasterNodeServer()
 }
@@ -206,8 +206,8 @@ func (UnimplementedMasterNodeServer) ReadFromNodes(context.Context, *ReadRequest
 func (UnimplementedMasterNodeServer) GetClusterState(context.Context, *emptypb.Empty) (*GetClusterStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetClusterState not implemented")
 }
-func (UnimplementedMasterNodeServer) GenerateRandomNodeForRead(context.Context, *emptypb.Empty) (*GenerateRandomNodeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GenerateRandomNodeForRead not implemented")
+func (UnimplementedMasterNodeServer) GenerateRandomNode(context.Context, *emptypb.Empty) (*GenerateRandomNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateRandomNode not implemented")
 }
 func (UnimplementedMasterNodeServer) SignalNewTail(context.Context, *NewTailRequest) (*NewTailResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignalNewTail not implemented")
@@ -279,20 +279,20 @@ func _MasterNode_GetClusterState_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MasterNode_GenerateRandomNodeForRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MasterNode_GenerateRandomNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MasterNodeServer).GenerateRandomNodeForRead(ctx, in)
+		return srv.(MasterNodeServer).GenerateRandomNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: MasterNode_GenerateRandomNodeForRead_FullMethodName,
+		FullMethod: MasterNode_GenerateRandomNode_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MasterNodeServer).GenerateRandomNodeForRead(ctx, req.(*emptypb.Empty))
+		return srv.(MasterNodeServer).GenerateRandomNode(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -335,8 +335,8 @@ var MasterNode_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MasterNode_GetClusterState_Handler,
 		},
 		{
-			MethodName: "GenerateRandomNodeForRead",
-			Handler:    _MasterNode_GenerateRandomNodeForRead_Handler,
+			MethodName: "GenerateRandomNode",
+			Handler:    _MasterNode_GenerateRandomNode_Handler,
 		},
 		{
 			MethodName: "SignalNewTail",
