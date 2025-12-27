@@ -95,7 +95,8 @@ type Raft struct {
 	electionTimeout  time.Duration
 	heartbeatTimeout time.Duration
 
-	stopCh chan struct{}
+	heartbeatCh chan struct{}
+	stopCh      chan struct{}
 }
 
 // NewRaft constructs a new Raft instance. The caller must provide an implementation
@@ -116,6 +117,7 @@ func NewRaft(id int, peers []int, rpc RPCSender, applyCh chan ApplyMsg) *Raft {
 		rpc:              rpc,
 		electionTimeout:  randomElectionTimeout(),
 		heartbeatTimeout: 150 * time.Millisecond,
+		heartbeatCh:      make(chan struct{}, 1),
 		stopCh:           make(chan struct{}),
 	}
 
@@ -160,7 +162,114 @@ func (rf *Raft) Start(command []byte) (int64, int64, bool) {
 	rf.log = append(rf.log, entry)
 	index := int64(len(rf.log))
 
-	// ADD REPLICATION TO FOLLOWERS TRIGGER (network layer will call AppendEntries)
+	// trigger replication to followers
+	term := rf.currentTerm
+	peers := append([]int{}, rf.peers...)
+	nextIndex := make(map[int]int64)
+	for k, v := range rf.nextIndex {
+		nextIndex[k] = v
+	}
+	leaderCommit := rf.commitIndex
+	// replicate asynchronously
+	for _, p := range peers {
+		if p == rf.id {
+			continue
+		}
+		go func(peer int) {
+			for {
+				rf.mu.Lock()
+				if rf.state != Leader {
+					rf.mu.Unlock()
+					return
+				}
+
+				prevIndex := nextIndex[peer] - 1
+				var prevTerm int64
+				if prevIndex > 0 && prevIndex <= int64(len(rf.log)) {
+					prevTerm = rf.log[prevIndex-1].Term
+				}
+
+				entries := make([]LogEntry, 0)
+				if nextIndex[peer] <= int64(len(rf.log)) {
+					entries = append(entries, rf.log[nextIndex[peer]-1:]...)
+				}
+				args := &AppendEntriesArgs{Term: term, LeaderId: rf.id, PrevLogIndex: prevIndex, PrevLogTerm: prevTerm, Entries: entries, LeaderCommit: leaderCommit}
+				rf.mu.Unlock()
+
+				var reply AppendEntriesReply
+				ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+				err := rf.rpc.AppendEntries(ctx, peer, args, &reply)
+				cancel()
+				if err != nil {
+					// retry shortly after
+					time.Sleep(50 * time.Millisecond)
+					continue
+				}
+
+				rf.mu.Lock()
+				if reply.Term > rf.currentTerm { // basically restart election
+					rf.currentTerm = reply.Term
+					rf.state = Follower
+					rf.votedFor = -1
+					rf.mu.Unlock()
+					return
+				}
+				if reply.Success {
+					// update nextIndex/matchIndex
+					sentCount := int64(0) // ugly workaround but whatever
+					if entries != nil {
+						sentCount = int64(len(entries))
+					}
+					if sentCount > 0 {
+						nextIndex[peer] = args.PrevLogIndex + 1 + sentCount
+						rf.nextIndex[peer] = nextIndex[peer]
+						rf.matchIndex[peer] = rf.nextIndex[peer] - 1
+					}
+
+					logCount := int64(len(rf.log))
+					for n := rf.commitIndex + 1; n <= logCount; n++ {
+						if rf.log[n-1].Term != rf.currentTerm {
+							continue
+						}
+
+						count := 1 // count replicas with matchIndex >= n
+						for _, peer2 := range rf.peers {
+							if peer2 == rf.id {
+								continue
+							}
+							if rf.matchIndex[peer2] >= n {
+								count++
+							}
+						}
+						if count >= (len(rf.peers)/2 + 1) {
+							rf.commitIndex = n
+						}
+					}
+
+					for rf.lastApplied < rf.commitIndex {
+						rf.lastApplied++
+						cmd := rf.log[rf.lastApplied-1].Command
+						rf.mu.Unlock()
+						rf.applyCh <- ApplyMsg{Index: rf.lastApplied, Command: cmd}
+						rf.mu.Lock()
+					}
+					rf.mu.Unlock()
+
+					return
+				}
+
+				// failed because of log mismatch. decrement nextIndex and retry
+				if nextIndex[peer] > 1 {
+					nextIndex[peer]--
+					rf.nextIndex[peer] = nextIndex[peer]
+				} else {
+					rf.mu.Unlock()
+					time.Sleep(50 * time.Millisecond)
+				}
+				rf.mu.Unlock()
+			}
+		}(p)
+	}
 
 	return index, rf.currentTerm, true
 }
@@ -175,9 +284,20 @@ func (rf *Raft) run() {
 		select {
 		case <-rf.stopCh:
 			return
-		case <-electionTimer.C:
+		case <-rf.heartbeatCh: // reset election timer on heartbeat or vote
+			if !electionTimer.Stop() {
+				select {
+				case <-electionTimer.C:
+				default:
+				}
+			}
+			electionTimer.Reset(rf.electionTimeout)
+		case <-electionTimer.C: // reset timer for next election
 			rf.startElection()
-			rf.resetElectionTimer(electionTimer)
+			rf.mu.Lock()
+			rf.electionTimeout = randomElectionTimeout()
+			rf.mu.Unlock()
+			electionTimer.Reset(rf.electionTimeout)
 		}
 	}
 }
@@ -232,8 +352,18 @@ func (rf *Raft) startElection() {
 				rf.currentTerm = reply.Term
 				rf.state = Follower
 				rf.votedFor = -1
+				// signal reset election timer on discovering higher term
+				select {
+				case rf.heartbeatCh <- struct{}{}:
+				default:
+				}
 			}
 			rf.mu.Unlock()
+			// signal reset election timer on receiving reply
+			select {
+			case rf.heartbeatCh <- struct{}{}:
+			default:
+			}
 			votesC <- reply.VoteGranted
 		}(peer)
 	}
@@ -271,7 +401,50 @@ func (rf *Raft) becomeLeader() {
 		rf.matchIndex[i] = 0
 	}
 
-	// ADD FUNCTSON TO SEND HEARTBEATS IMMEDIATELY AFTER
+	// create heartbeat (empty entries)
+	go func() {
+		ticker := time.NewTicker(rf.heartbeatTimeout)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-rf.stopCh:
+				return
+			case <-ticker.C:
+				rf.sendHeartbeats()
+			}
+		}
+	}()
+}
+
+func (rf *Raft) sendHeartbeats() {
+	rf.mu.Lock()
+	if rf.state != Leader {
+		rf.mu.Unlock()
+		return
+	}
+
+	term := rf.currentTerm
+	peers := append([]int{}, rf.peers...)
+	nextIndex := make(map[int]int64)
+	for k, v := range rf.nextIndex {
+		nextIndex[k] = v
+	}
+	leaderCommit := rf.commitIndex
+	rf.mu.Unlock()
+
+	for _, p := range peers {
+		if p == rf.id {
+			continue
+		}
+
+		go func(peer int) { // send minimal or empty entries
+			args := &AppendEntriesArgs{Term: term, LeaderId: rf.id, PrevLogIndex: nextIndex[peer] - 1, PrevLogTerm: 0, Entries: nil, LeaderCommit: leaderCommit}
+			var reply AppendEntriesReply
+			ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+			defer cancel()
+			_ = rf.rpc.AppendEntries(ctx, peer, args, &reply)
+		}(p)
+	}
 }
 
 // Handle RequestVote RPC call from a candidate.
@@ -304,6 +477,12 @@ func (rf *Raft) RequestVote(ctx context.Context, args *RequestVoteArgs, reply *R
 			rf.votedFor = args.CandidateId
 			reply.VoteGranted = true
 			reply.Term = rf.currentTerm
+
+			// reset election tiemr cause of vote granted
+			select {
+			case rf.heartbeatCh <- struct{}{}:
+			default:
+			}
 		}
 	}
 
@@ -322,6 +501,12 @@ func (rf *Raft) AppendEntries(ctx context.Context, args *AppendEntriesArgs, repl
 	}
 	rf.state = Follower
 	rf.currentTerm = args.Term
+
+	// reset election timer on heartbeat
+	select {
+	case rf.heartbeatCh <- struct{}{}:
+	default:
+	}
 
 	// SIMPLIFIED: accept entries by appending them if PrevLogIndex matches
 	if args.PrevLogIndex > int64(len(rf.log)) {
@@ -346,7 +531,10 @@ func (rf *Raft) AppendEntries(ctx context.Context, args *AppendEntriesArgs, repl
 		for rf.lastApplied < rf.commitIndex {
 			rf.lastApplied++
 			cmd := rf.log[rf.lastApplied-1].Command
+			// send apply without holding lock (unlock temporarily), won't work any other way. i'm still tired...
+			rf.mu.Unlock()
 			rf.applyCh <- ApplyMsg{Index: rf.lastApplied, Command: cmd}
+			rf.mu.Lock()
 		}
 	}
 
