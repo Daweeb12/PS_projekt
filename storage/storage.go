@@ -50,6 +50,8 @@ func (lm *LockableMap[K, V]) Find(key K, f func(K) (V, error)) (V, error) {
 	return f(key)
 }
 
+//
+
 func (lm *LockableMap[K, V]) GetValByKey(key K) (V, bool) {
 	lm.Lockable.Mu.Lock()
 	defer lm.Lockable.Mu.Unlock()
@@ -65,4 +67,10 @@ func (lm *LockableMap[K, V]) GetAllValues() []V {
 		listValues = append(listValues, message)
 	}
 	return listValues
+}
+
+func (lm *LockableMap[K, V]) SetValForKey(k K, v V) {
+	lm.Lockable.Mu.Lock()
+	defer lm.Lockable.Mu.Unlock()
+	lm.Lockable.Data[k] = v
 }

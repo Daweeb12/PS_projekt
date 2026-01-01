@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package razpravljalnica;
 
-option go_package = "/razpravljalnica";
+option go_package ="PS_projekt/api/grpc/protobufRazpravljalnica;razpravljalnica";
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
@@ -85,7 +85,12 @@ service  MessageBoard{
 
   // Subscribe to topics; goes to the node returned by head
   rpc SubscribeTopic(SubscribeTopicRequest) returns (stream MessageEvent);
-
+  //Sync the old tail and the new tail 
+  rpc TransferData(stream UploadData) returns (UploadACK);
+  //Signal that a new tail has been added 
+  rpc SignalNewTail(SyncTailsRequest)returns (SyncTailsACK);
+  rpc HeartBeat(HearthBeatRequest) returns (HearthBeatResponse);
+  rpc AssignChainNode(AssignRequest) returns (ACK);
 }
 
 message CreateUserRequest {
@@ -158,16 +163,56 @@ message MessageEvent {
   google.protobuf.Timestamp event_at = 4; // timestamp of the event
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Control plane
-////////////////////////////////////////////////////////////////////////////////
 
-// Return the the head and the tail node address
-service ControlPlane {
-  rpc GetClusterState(google.protobuf.Empty) returns (GetClusterStateResponse);
+message UploadData{
+  repeated Like userLikes = 1 ; 
+  repeated User users = 2 ; 
+  repeated Topic topic = 3 ; 
+  repeated Message messages = 4 ;
 }
 
-message GetClusterStateResponse {
-  NodeInfo head = 1;
-  NodeInfo tail = 2;
+
+
+message UploadACK{
+  bool succ = 1 ; 
+}
+
+
+///////////////////////////
+//signal new tail data 
+//////////////////////////
+message SyncTailsRequest{
+  NodeInfo newTail = 1 ; 
+}
+
+message SyncTailsACK{
+  bool succ = 1 ; 
+}
+
+message ACK{
+  bool success = 1 ; 
+  int64 version = 2 ; 
+  int64 id = 3 ; 
+}
+
+///////////////////////////////////////////////////////
+//Chain node requests 
+///////////////////////////////////////////////////////
+
+
+
+message HearthBeatResponse {
+  int64 id  =1 ; 
+}
+
+message HearthBeatRequest {
+  int64 id = 1 ; 
+}
+
+message AssignRequest {
+  string nextUrl =1;
+  string prevUrl =2;
+  string clientUrl = 3 ; 
+  int64 id =4;
+  string tailUrl = 5 ; 
 }
