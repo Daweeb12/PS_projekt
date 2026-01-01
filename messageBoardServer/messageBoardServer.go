@@ -71,17 +71,10 @@ type MessageBoardServer struct {
 
 // initialize the storage
 func NewMessageBoardServer(id int64) *MessageBoardServer {
-<<<<<<< HEAD
 	userStorage := storage.NewLockableMap[int64, *UserData]()
 	topicStorage := storage.NewLockableMap[int64, *TopicData]()
 	messageStorage := storage.NewLockableMap[int64, *MessageData]()
-	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, messageStorage, nil, nil, nil, nil, nil, nil, nil}
-=======
-	userStorage := storage.NewLockableMap[int64, *protobufRazpravljalnica.User]()
-	topicStorage := storage.NewLockableMap[int64, *protobufRazpravljalnica.Topic]()
-	messageStorage := storage.NewLockableMap[int64, *protobufRazpravljalnica.Message]()
-	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, userStorage, topicStorage, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0}
->>>>>>> origin/craq
+	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0}
 }
 
 // generates random user id and adds to map
@@ -177,9 +170,7 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 		in.Version = server.GetVersion()
 	}
 	messageId := GenerateRand32(server.MessageStorage)
-<<<<<<< HEAD
-	randMu.Unlock()
-	message := &protobufRazpravljalnica.Message{Id: messageId, TopicId: topicId, UserId: userId, Text: in.Text}
+	message := &protobufRazpravljalnica.Message{Id: messageId, TopicId: topicId, UserId: userId, Text: in.Text, CreatedAt: timestamppb.Now()}
 	messageData := &MessageData{Message: message, Dirty: true}
 	server.MessageStorage.Put(messageId, messageData)
 	if server.ClientNext == nil {
@@ -191,6 +182,10 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 	if msg, err := server.PostMessage(ctx, in); err == nil {
 		messageData.Dirty = false
 		server.MessageStorage.Put(messageId, messageData)
+			// publish event
+		seq := atomic.AddInt64(&server.seq, 1)
+		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_POST, Message: message, EventAt: timestamppb.Now()}
+		server.publishEvent(event)
 		return msg, nil
 	} else if status.Code(err) == codes.Unavailable {
 		server.handleUnavailableNode()
@@ -198,17 +193,11 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 	} else {
 		return nil, err
 	}
-=======
-	message := &protobufRazpravljalnica.Message{Id: messageId, TopicId: topicId, UserId: userId, Text: in.Text, CreatedAt: timestamppb.Now()}
-	server.MessageStorage.Put(messageId, message)
 
-	// publish event
-	seq := atomic.AddInt64(&server.seq, 1)
-	event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_POST, Message: message, EventAt: timestamppb.Now()}
-	server.publishEvent(event)
 
-	return &protobufRazpravljalnica.Message{Id: messageId, TopicId: topicId, UserId: userId, Text: in.Text, CreatedAt: message.CreatedAt}, nil
->>>>>>> origin/craq
+
+
+
 }
 
 func (server *MessageBoardServer) UpdateMessage(ctx context.Context, in *protobufRazpravljalnica.UpdateMessageRequest) (*protobufRazpravljalnica.Message, error) {
@@ -236,21 +225,18 @@ func (server *MessageBoardServer) UpdateMessage(ctx context.Context, in *protobu
 	if msg, err := server.ClientNext.UpdateMessage(ctx, in); err == nil {
 		msgData.Dirty = false
 		server.MessageStorage.Put(in.MessageId, msgData)
+		seq := atomic.AddInt64(&server.seq, 1)
+		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_UPDATE, Message: msg, EventAt: timestamppb.Now()}
+		server.publishEvent(event)
 		return msg, nil
 	} else if status.Code(err) == codes.Unavailable {
 		server.handleUnavailableNode()
 		return nil, clientStopedErr
 	} else {
-<<<<<<< HEAD
 		return nil, err
-=======
 		msg.Text = in.Text
 		server.MessageStorage.Put(in.MessageId, msg)
-		seq := atomic.AddInt64(&server.seq, 1)
-		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_UPDATE, Message: msg, EventAt: timestamppb.Now()}
-		server.publishEvent(event)
-		return msg, nil
->>>>>>> origin/craq
+	
 	}
 }
 
@@ -261,6 +247,7 @@ func (server *MessageBoardServer) DeleteMessage(ctx context.Context, in *protobu
 		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_DELETE, Message: msg, EventAt: timestamppb.Now()}
 		server.publishEvent(event)
 	}
+
 	server.MessageStorage.Delete(in.MessageId)
 	if server.ClientNext == nil {
 		return &emptypb.Empty{}, nil
@@ -300,8 +287,13 @@ func (server *MessageBoardServer) LikeMessage(ctx context.Context, in *protobufR
 
 	message.Likes++
 	server.MessageStorage.Put(in.MessageId, message)
-<<<<<<< HEAD
 	if server.ClientNext == nil {
+	seq := atomic.AddInt64(&server.seq, 1)
+	event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_LIKE, Message: message, EventAt: timestamppb.Now()}
+	server.publishEvent(event)
+	seq := atomic.AddInt64(&server.seq, 1)
+	event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_LIKE, Message: message, EventAt: timestamppb.Now()}
+	server.publishEvent(event)
 		return message.Message, nil
 	} else if message, err := server.ClientNext.LikeMessage(ctx, in); err == nil {
 		return message, nil
@@ -311,102 +303,8 @@ func (server *MessageBoardServer) LikeMessage(ctx context.Context, in *protobufR
 	} else {
 		return nil, err
 	}
-=======
-	seq := atomic.AddInt64(&server.seq, 1)
-	event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_LIKE, Message: message, EventAt: timestamppb.Now()}
-	server.publishEvent(event)
+	
 
-	return message, nil
->>>>>>> origin/craq
-}
-
-// send type MessageEvent to all subs
-func (server *MessageBoardServer) publishEvent(ev *protobufRazpravljalnica.MessageEvent) {
-	server.subMu.Lock()
-	subs := len(server.subscribers)
-	server.subMu.Unlock()
-
-	// debug: show there are subscribers
-	if subs == 0 {
-		// no subscribers; nothing to do
-		return
-	}
-
-	server.subMu.Lock()
-	defer server.subMu.Unlock()
-	for id, eventChan := range server.subscribers {
-		select {
-		case eventChan <- ev:
-			// delivered
-			fmt.Println("publishEvent: delivered to subscriber", id, "seq", ev.SequenceNumber)
-		default:
-			// subscriber is unreachable (likely a better way to do this but i can't find it)
-			fmt.Println("publishEvent: drop for subscriber", id)
-			_ = id
-		}
-	}
-}
-
-// stream MessageEvent updates to matching requsted topics.
-func (server *MessageBoardServer) SubscribeTopic(req *protobufRazpravljalnica.SubscribeTopicRequest, stream protobufRazpravljalnica.MessageBoard_SubscribeTopicServer) error {
-	eventChan := make(chan *protobufRazpravljalnica.MessageEvent, 64)
-	server.subMu.Lock()
-	id := server.nextSubId
-	server.nextSubId++
-	server.subscribers[id] = eventChan
-	server.subMu.Unlock()
-	fmt.Println("SubscribeTopic: registered subscriber", id)
-
-	// vile thing i found on stack overflow
-	defer func() {
-		server.subMu.Lock()
-		delete(server.subscribers, id)
-		close(eventChan)
-		server.subMu.Unlock()
-	}()
-
-	// send existing messages from FromMessageId
-	if len(req.TopicId) > 0 {
-		for _, m := range server.MessageStorage.GetAllValues() {
-			for _, topicId := range req.TopicId {
-				if m.TopicId == topicId && m.Id > req.FromMessageId {
-					seq := atomic.AddInt64(&server.seq, 1)
-					ev := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_POST, Message: m, EventAt: timestamppb.Now()}
-					if err := stream.Send(ev); err != nil {
-						return err
-					}
-					fmt.Println("SubscribeTopic: sent history ev seq", ev.SequenceNumber)
-					break
-				}
-			}
-		}
-	}
-
-	// stream new events
-	fmt.Println("SubscribeTopic: entering event loop for subscriber", id)
-	for {
-		select {
-		case <-stream.Context().Done():
-			return nil
-		case ev := <-eventChan:
-			// filter by topic ids if provided
-			if len(req.TopicId) > 0 {
-				matched := false
-				for _, tid := range req.TopicId {
-					if ev.Message != nil && ev.Message.TopicId == tid {
-						matched = true
-						break
-					}
-				}
-				if !matched {
-					continue
-				}
-			}
-			if err := stream.Send(ev); err != nil {
-				return err
-			}
-		}
-	}
 }
 
 func (server *MessageBoardServer) GetMessages(ctx context.Context, in *protobufRazpravljalnica.GetMessagesRequest) (*protobufRazpravljalnica.GetMessagesResponse, error) {
