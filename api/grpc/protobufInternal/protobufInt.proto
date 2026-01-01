@@ -28,7 +28,7 @@ service MasterNode{
   rpc SignalAlive(SignalAliveRequest)returns (SignalAliveResponse);
   rpc ReadFromNodes(ReadRequest) returns (ReadResponse);
   rpc GetClusterState(google.protobuf.Empty)returns(GetClusterStateResponse);
-  rpc GenerateRandomNodeForRead(google.protobuf.Empty)returns(GenerateRandomNodeResponse);
+  rpc GenerateRandomNode(google.protobuf.Empty)returns(GenerateRandomNodeResponse);
   rpc SignalNewTail(NewTailRequest) returns (NewTailResponse); 
 }
 message SignalAliveRequest {

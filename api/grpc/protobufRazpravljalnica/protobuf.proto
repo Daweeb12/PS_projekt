@@ -13,11 +13,13 @@ import "google/protobuf/timestamp.proto";
 message User {
   int64 id = 1;
   string name = 2;
+  int64 version = 3 ; 
 }
 
 message Topic {
   int64 id = 1;
   string name = 2;
+  int64 version = 3 ; 
 }
 
 message Message {
@@ -27,12 +29,14 @@ message Message {
   string text = 4;
   google.protobuf.Timestamp created_at = 5;
   int32 likes = 6;
+  int64 version = 7 ; 
 }
 
 message Like {
   int64 topic_id = 1;
   int64 message_id = 2;
   int64 user_id = 3; // user who liked the message
+  int64 version = 4 ; 
 }
 
 enum OpType {
@@ -91,26 +95,31 @@ service  MessageBoard{
   rpc SignalNewTail(SyncTailsRequest)returns (SyncTailsACK);
   rpc HeartBeat(HearthBeatRequest) returns (HearthBeatResponse);
   rpc AssignChainNode(AssignRequest) returns (ACK);
+  rpc ForwardBatch(BatchRequest) returns (BatchResponse);
 }
 
 message CreateUserRequest {
   string name = 1;
+  int64 version = 2 ; 
 }
 
 message CreateTopicRequest {
   string name = 1;
+  int64 version = 2 ; 
 }
 
 message PostMessageRequest {
   int64 topic_id = 1;
   int64 user_id = 2;
   string text = 3;
+  int64 version = 4 ; 
 }
 
 message DeleteMessageRequest {
   int64 topic_id = 1;
   int64 user_id = 2;
   int64 message_id = 3;
+  int64 version = 4 ; 
 }
 
 message UpdateMessageRequest {
@@ -118,12 +127,14 @@ message UpdateMessageRequest {
   int64 user_id = 2;
   int64 message_id = 3;
   string text = 4; // new text
+  int64 version = 5 ; 
 }
 
 message LikeMessageRequest {
   int64 topic_id = 1;
   int64 message_id = 2;
   int64 user_id = 3; // user who posted the like
+  int64 version = 4 ; 
 }
 
 message ListTopicsResponse {
@@ -215,4 +226,18 @@ message AssignRequest {
   string clientUrl = 3 ; 
   int64 id =4;
   string tailUrl = 5 ; 
+}
+
+
+message BatchRequest{
+  repeated Like userLikes = 1 ; 
+  repeated User users = 2 ; 
+  repeated Topic topic = 3 ; 
+  repeated Message messages = 4 ;
+}
+
+
+message BatchResponse{
+   int64 version = 1 ; 
+   bool success = 2 ; 
 }

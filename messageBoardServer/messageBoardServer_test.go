@@ -62,9 +62,11 @@ func TestSubscribeReceivesLiveEvents(t *testing.T) {
 	// create user and topic in storage directly (avoid GenerateRand32 in tests)
 	fmt.Println("creating user/topic directly in storage")
 	user := &protobufRazpravljalnica.User{Id: 1, Name: "alice"}
-	srv.UserStorage.Put(user.Id, user)
+	userData := &UserData{User: user, Dirty: true}
+	srv.UserStorage.Put(user.Id, userData)
 	topic := &protobufRazpravljalnica.Topic{Id: 1, Name: "t1"}
-	srv.TopicStorage.Put(topic.Id, topic)
+	topicData := &TopicData{Topic: topic, Dirty: true}
+	srv.TopicStorage.Put(topic.Id, topicData)
 
 	// prepare subscriber stream
 	fmt.Println("preparing subscriber stream")
@@ -85,7 +87,8 @@ func TestSubscribeReceivesLiveEvents(t *testing.T) {
 	// 1) Post: insert message directly and publish event (avoid GenerateRand32)
 	fmt.Println("inserting message and publishing event directly")
 	posted := &protobufRazpravljalnica.Message{Id: 11, TopicId: topic.Id, UserId: user.Id, Text: "hello", CreatedAt: timestamppb.Now()}
-	srv.MessageStorage.Put(posted.Id, posted)
+	postData := &MessageData{Message: posted, Dirty: true}
+	srv.MessageStorage.Put(posted.Id, postData)
 	seq := atomic.AddInt64(&srv.seq, 1)
 	srv.publishEvent(&protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_POST, Message: posted, EventAt: timestamppb.Now()})
 	ev := waitEvent(t, s.events, 500*time.Millisecond)
@@ -141,13 +144,16 @@ func TestSubscribeReceivesHistoryAndLive(t *testing.T) {
 
 	// create user and topic directly
 	user := &protobufRazpravljalnica.User{Id: 2, Name: "bob"}
-	srv.UserStorage.Put(user.Id, user)
+	userData := &UserData{User: user, Dirty: true}
+	srv.UserStorage.Put(user.Id, userData)
 	topic := &protobufRazpravljalnica.Topic{Id: 2, Name: "history"}
-	srv.TopicStorage.Put(topic.Id, topic)
+	topicData := &TopicData{Topic: topic, Dirty: true}
+	srv.TopicStorage.Put(topic.Id, topicData)
 
 	// post a message before subscribing (this should be delivered as history)
 	posted := &protobufRazpravljalnica.Message{Id: 21, TopicId: topic.Id, UserId: user.Id, Text: "first", CreatedAt: timestamppb.Now()}
-	srv.MessageStorage.Put(posted.Id, posted)
+	messageData := &MessageData{Message: posted, Dirty: true}
+	srv.MessageStorage.Put(posted.Id, messageData)
 
 	// subscribe with FromMessageId = 0 to receive the existing message
 	ctx, cancel := context.WithCancel(context.Background())
@@ -168,7 +174,8 @@ func TestSubscribeReceivesHistoryAndLive(t *testing.T) {
 
 	// now insert another message directly and publish as live event (avoid GenerateRand32)
 	posted2 := &protobufRazpravljalnica.Message{Id: 22, TopicId: topic.Id, UserId: user.Id, Text: "second", CreatedAt: timestamppb.Now()}
-	srv.MessageStorage.Put(posted2.Id, posted2)
+	posted2Data := &MessageData{Message: posted2, Dirty: true}
+	srv.MessageStorage.Put(posted2.Id, posted2Data)
 	seq2 := atomic.AddInt64(&srv.seq, 1)
 	srv.publishEvent(&protobufRazpravljalnica.MessageEvent{SequenceNumber: seq2, Op: protobufRazpravljalnica.OpType_OP_POST, Message: posted2, EventAt: timestamppb.Now()})
 	ev = waitEvent(t, s.events, 500*time.Millisecond)

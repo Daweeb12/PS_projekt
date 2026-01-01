@@ -81,8 +81,9 @@ func (masterNode *MasterNode) CheckHealth() error {
 }
 
 func (masterNode *MasterNode) RemoveNode(target *Node) {
-	masterNode.ChainLen.Add(-1)
 	masterNode.Mu.Lock()
+	fmt.Println("removing node: ", target)
+	masterNode.ChainLen.Add(-1)
 	defer masterNode.Mu.Unlock()
 	if target != nil && target.conn != nil {
 		defer target.conn.Close()
@@ -113,13 +114,13 @@ func (masterNode *MasterNode) RemoveNode(target *Node) {
 }
 
 func (masterNode *MasterNode) AddNode(node *Node) error {
-	masterNode.ChainLen.Add(1)
 	masterNode.Mu.Lock()
+	masterNode.ChainLen.Add(1)
+	fmt.Println("adding node: ", node)
 	defer masterNode.Mu.Unlock()
 	if masterNode.Tail == nil {
 		fmt.Println("added first node")
 		masterNode.Head = node
-		masterNode.Tail = node
 		masterNode.Tail = node
 		fmt.Println(node)
 		return nil
@@ -136,18 +137,18 @@ func (masterNode *MasterNode) AddNode(node *Node) error {
 	node.Prev = oldTail
 	masterNode.Tail = node
 
-	assignmentPrevTailReq := pbRaz.AssignRequest{Id: node.Id, NextUrl: node.Url, PrevUrl: "", TailUrl: node.Url}
-	assignmentNewTailReq := pbRaz.AssignRequest{Id: masterNode.Tail.Id, NextUrl: "", PrevUrl: oldTail.Url, TailUrl: ""}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	if _, err := oldTail.msgBoardClient.AssignChainNode(ctx, &assignmentPrevTailReq); err != nil {
-		return err
-	}
-	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	if _, err := node.msgBoardClient.AssignChainNode(ctx, &assignmentNewTailReq); err != nil {
-		return err
-	}
+	// assignmentPrevTailReq := pbRaz.AssignRequest{Id: node.Id, NextUrl: node.Url, PrevUrl: "", TailUrl: node.Url}
+	// assignmentNewTailReq := pbRaz.AssignRequest{Id: masterNode.Tail.Id, NextUrl: "", PrevUrl: oldTail.Url, TailUrl: ""}
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	// defer cancel()
+	// if _, err := oldTail.msgBoardClient.AssignChainNode(ctx, &assignmentPrevTailReq); err != nil {
+	// 	return err
+	// }
+	// ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+	// defer cancel()
+	// if _, err := node.msgBoardClient.AssignChainNode(ctx, &assignmentNewTailReq); err != nil {
+	// 	return err
+	// }
 	return nil
 }
 

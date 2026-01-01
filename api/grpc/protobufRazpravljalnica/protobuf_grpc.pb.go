@@ -34,6 +34,7 @@ const (
 	MessageBoard_SignalNewTail_FullMethodName       = "/razpravljalnica.MessageBoard/SignalNewTail"
 	MessageBoard_HeartBeat_FullMethodName           = "/razpravljalnica.MessageBoard/HeartBeat"
 	MessageBoard_AssignChainNode_FullMethodName     = "/razpravljalnica.MessageBoard/AssignChainNode"
+	MessageBoard_ForwardBatch_FullMethodName        = "/razpravljalnica.MessageBoard/ForwardBatch"
 )
 
 // MessageBoardClient is the client API for MessageBoard service.
@@ -66,6 +67,7 @@ type MessageBoardClient interface {
 	SignalNewTail(ctx context.Context, in *SyncTailsRequest, opts ...grpc.CallOption) (*SyncTailsACK, error)
 	HeartBeat(ctx context.Context, in *HearthBeatRequest, opts ...grpc.CallOption) (*HearthBeatResponse, error)
 	AssignChainNode(ctx context.Context, in *AssignRequest, opts ...grpc.CallOption) (*ACK, error)
+	ForwardBatch(ctx context.Context, in *BatchRequest, opts ...grpc.CallOption) (*BatchResponse, error)
 }
 
 type messageBoardClient struct {
@@ -250,6 +252,15 @@ func (c *messageBoardClient) AssignChainNode(ctx context.Context, in *AssignRequ
 	return out, nil
 }
 
+func (c *messageBoardClient) ForwardBatch(ctx context.Context, in *BatchRequest, opts ...grpc.CallOption) (*BatchResponse, error) {
+	out := new(BatchResponse)
+	err := c.cc.Invoke(ctx, MessageBoard_ForwardBatch_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MessageBoardServer is the server API for MessageBoard service.
 // All implementations must embed UnimplementedMessageBoardServer
 // for forward compatibility
@@ -280,6 +291,7 @@ type MessageBoardServer interface {
 	SignalNewTail(context.Context, *SyncTailsRequest) (*SyncTailsACK, error)
 	HeartBeat(context.Context, *HearthBeatRequest) (*HearthBeatResponse, error)
 	AssignChainNode(context.Context, *AssignRequest) (*ACK, error)
+	ForwardBatch(context.Context, *BatchRequest) (*BatchResponse, error)
 	mustEmbedUnimplementedMessageBoardServer()
 }
 
@@ -328,6 +340,9 @@ func (UnimplementedMessageBoardServer) HeartBeat(context.Context, *HearthBeatReq
 }
 func (UnimplementedMessageBoardServer) AssignChainNode(context.Context, *AssignRequest) (*ACK, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AssignChainNode not implemented")
+}
+func (UnimplementedMessageBoardServer) ForwardBatch(context.Context, *BatchRequest) (*BatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ForwardBatch not implemented")
 }
 func (UnimplementedMessageBoardServer) mustEmbedUnimplementedMessageBoardServer() {}
 
@@ -605,6 +620,24 @@ func _MessageBoard_AssignChainNode_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageBoard_ForwardBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageBoardServer).ForwardBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageBoard_ForwardBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageBoardServer).ForwardBatch(ctx, req.(*BatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MessageBoard_ServiceDesc is the grpc.ServiceDesc for MessageBoard service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -659,6 +692,10 @@ var MessageBoard_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AssignChainNode",
 			Handler:    _MessageBoard_AssignChainNode_Handler,
+		},
+		{
+			MethodName: "ForwardBatch",
+			Handler:    _MessageBoard_ForwardBatch_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
