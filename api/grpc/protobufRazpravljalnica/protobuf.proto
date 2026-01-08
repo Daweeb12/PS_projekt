@@ -38,7 +38,19 @@ message Like {
   int64 user_id = 3; // user who liked the message
   int64 version = 4 ; 
 }
+message UserData{
+  User user = 1 ;
+  bool dirty = 2;
+}
+message MessageData{
+  Message msg = 1 ;
+  bool dirty = 2;
+}
 
+message TopicData{
+  Topic topic = 1 ;
+  bool dirty = 2;
+}
 enum OpType {
   OP_POST   = 0; // add a message to a topic
   OP_LIKE   = 1; // like a message
@@ -47,7 +59,7 @@ enum OpType {
 }
 
 message NodeInfo {
-  string node_id = 1;
+  int64 node_id = 1;
   string address = 2;
 }
 
@@ -90,7 +102,7 @@ service  MessageBoard{
   // Subscribe to topics; goes to the node returned by head
   rpc SubscribeTopic(SubscribeTopicRequest) returns (stream MessageEvent);
   //Sync the old tail and the new tail 
-  rpc TransferData(stream UploadData) returns (UploadACK);
+  rpc TransferData(TransferDataRequest) returns (ACK);
   //Signal that a new tail has been added 
   rpc SignalNewTail(SyncTailsRequest)returns (SyncTailsACK);
   rpc HeartBeat(HearthBeatRequest) returns (HearthBeatResponse);
@@ -369,4 +381,10 @@ message ReadTopicRequest{
 message ListMessagesResponse{
    repeated Message messages = 1 ;
 }
-
+message TransferDataRequest{
+  
+  repeated User users  =1 ; 
+  repeated Message messages =2 ; 
+  repeated Topic topics = 3 ; 
+  repeated Like likes  = 4 ; 
+}

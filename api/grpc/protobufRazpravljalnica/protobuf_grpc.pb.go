@@ -68,7 +68,7 @@ type MessageBoardClient interface {
 	// Subscribe to topics; goes to the node returned by head
 	SubscribeTopic(ctx context.Context, in *SubscribeTopicRequest, opts ...grpc.CallOption) (MessageBoard_SubscribeTopicClient, error)
 	// Sync the old tail and the new tail
-	TransferData(ctx context.Context, opts ...grpc.CallOption) (MessageBoard_TransferDataClient, error)
+	TransferData(ctx context.Context, in *TransferDataRequest, opts ...grpc.CallOption) (*ACK, error)
 	// Signal that a new tail has been added
 	SignalNewTail(ctx context.Context, in *SyncTailsRequest, opts ...grpc.CallOption) (*SyncTailsACK, error)
 	HeartBeat(ctx context.Context, in *HearthBeatRequest, opts ...grpc.CallOption) (*HearthBeatResponse, error)
@@ -203,38 +203,13 @@ func (x *messageBoardSubscribeTopicClient) Recv() (*MessageEvent, error) {
 	return m, nil
 }
 
-func (c *messageBoardClient) TransferData(ctx context.Context, opts ...grpc.CallOption) (MessageBoard_TransferDataClient, error) {
-	stream, err := c.cc.NewStream(ctx, &MessageBoard_ServiceDesc.Streams[1], MessageBoard_TransferData_FullMethodName, opts...)
+func (c *messageBoardClient) TransferData(ctx context.Context, in *TransferDataRequest, opts ...grpc.CallOption) (*ACK, error) {
+	out := new(ACK)
+	err := c.cc.Invoke(ctx, MessageBoard_TransferData_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &messageBoardTransferDataClient{stream}
-	return x, nil
-}
-
-type MessageBoard_TransferDataClient interface {
-	Send(*UploadData) error
-	CloseAndRecv() (*UploadACK, error)
-	grpc.ClientStream
-}
-
-type messageBoardTransferDataClient struct {
-	grpc.ClientStream
-}
-
-func (x *messageBoardTransferDataClient) Send(m *UploadData) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *messageBoardTransferDataClient) CloseAndRecv() (*UploadACK, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(UploadACK)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *messageBoardClient) SignalNewTail(ctx context.Context, in *SyncTailsRequest, opts ...grpc.CallOption) (*SyncTailsACK, error) {
@@ -352,7 +327,7 @@ type MessageBoardServer interface {
 	// Subscribe to topics; goes to the node returned by head
 	SubscribeTopic(*SubscribeTopicRequest, MessageBoard_SubscribeTopicServer) error
 	// Sync the old tail and the new tail
-	TransferData(MessageBoard_TransferDataServer) error
+	TransferData(context.Context, *TransferDataRequest) (*ACK, error)
 	// Signal that a new tail has been added
 	SignalNewTail(context.Context, *SyncTailsRequest) (*SyncTailsACK, error)
 	HeartBeat(context.Context, *HearthBeatRequest) (*HearthBeatResponse, error)
@@ -401,8 +376,8 @@ func (UnimplementedMessageBoardServer) GetMessages(context.Context, *GetMessages
 func (UnimplementedMessageBoardServer) SubscribeTopic(*SubscribeTopicRequest, MessageBoard_SubscribeTopicServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeTopic not implemented")
 }
-func (UnimplementedMessageBoardServer) TransferData(MessageBoard_TransferDataServer) error {
-	return status.Errorf(codes.Unimplemented, "method TransferData not implemented")
+func (UnimplementedMessageBoardServer) TransferData(context.Context, *TransferDataRequest) (*ACK, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransferData not implemented")
 }
 func (UnimplementedMessageBoardServer) SignalNewTail(context.Context, *SyncTailsRequest) (*SyncTailsACK, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignalNewTail not implemented")
@@ -630,30 +605,22 @@ func (x *messageBoardSubscribeTopicServer) Send(m *MessageEvent) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _MessageBoard_TransferData_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageBoardServer).TransferData(&messageBoardTransferDataServer{stream})
-}
-
-type MessageBoard_TransferDataServer interface {
-	SendAndClose(*UploadACK) error
-	Recv() (*UploadData, error)
-	grpc.ServerStream
-}
-
-type messageBoardTransferDataServer struct {
-	grpc.ServerStream
-}
-
-func (x *messageBoardTransferDataServer) SendAndClose(m *UploadACK) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *messageBoardTransferDataServer) Recv() (*UploadData, error) {
-	m := new(UploadData)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _MessageBoard_TransferData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferDataRequest)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(MessageBoardServer).TransferData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageBoard_TransferData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageBoardServer).TransferData(ctx, req.(*TransferDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _MessageBoard_SignalNewTail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -880,6 +847,10 @@ var MessageBoard_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MessageBoard_GetMessages_Handler,
 		},
 		{
+			MethodName: "TransferData",
+			Handler:    _MessageBoard_TransferData_Handler,
+		},
+		{
 			MethodName: "SignalNewTail",
 			Handler:    _MessageBoard_SignalNewTail_Handler,
 		},
@@ -925,11 +896,6 @@ var MessageBoard_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "SubscribeTopic",
 			Handler:       _MessageBoard_SubscribeTopic_Handler,
 			ServerStreams: true,
-		},
-		{
-			StreamName:    "TransferData",
-			Handler:       _MessageBoard_TransferData_Handler,
-			ClientStreams: true,
 		},
 	},
 	Metadata: "protobuf.proto",
