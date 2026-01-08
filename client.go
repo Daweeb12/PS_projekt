@@ -1,7 +1,6 @@
 package main
 
 import (
-	protobufInt "PS_projekt/api/grpc/protobufInternal"
 	razpravljalnica "PS_projekt/api/grpc/protobufRazpravljalnica"
 	"bufio"
 	"context"
@@ -398,7 +397,7 @@ func UpdateClient(url string) {
 		panic(err)
 	}
 	defer conn.Close()
-	grpcClient := protobufInt.NewMasterNodeClient(conn)
+	grpcClient := razpravljalnica.NewMasterNodeClient(conn)
 
 	for {
 		headInfo, tailInfo, err := fetchDetails(grpcClient)
@@ -430,7 +429,7 @@ func UpdateClient(url string) {
 	}
 }
 
-func fetchDetails(grpcClient protobufInt.MasterNodeClient) (*protobufInt.NodeData, *protobufInt.NodeData, error) {
+func fetchDetails(grpcClient razpravljalnica.MasterNodeClient) (*razpravljalnica.NodeData, *razpravljalnica.NodeData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	clusterInfo, err := grpcClient.GetClusterState(ctx, &emptypb.Empty{})

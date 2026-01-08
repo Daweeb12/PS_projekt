@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -18,14 +19,15 @@ import (
 )
 
 var (
-	randMu           sync.Mutex
-	topicErr         = fmt.Errorf("topic does not exist")
-	userExistsErr    = fmt.Errorf("user does not exist")
-	messageExistsErr = fmt.Errorf("message does not exist")
-	emptyTopicErr    = fmt.Errorf("topic can not be empty")
-	emptyUsernameErr = fmt.Errorf("username can not be empty")
-	clientStopedErr  = fmt.Errorf("the next client has stoped responding")
-	failErr          = fmt.Errorf("sending data has failed")
+	randMu              sync.Mutex
+	topicErr            = fmt.Errorf("topic does not exist")
+	userExistsErr       = fmt.Errorf("user does not exist")
+	messageExistsErr    = fmt.Errorf("message does not exist")
+	emptyTopicErr       = fmt.Errorf("topic can not be empty")
+	emptyUsernameErr    = fmt.Errorf("username can not be empty")
+	clientStopedErr     = fmt.Errorf("the next client has stoped responding")
+	failErr             = fmt.Errorf("sending data has failed")
+	dataNotAvailableErr = fmt.Errorf("data not availabale")
 )
 
 // generate uint32 uids
@@ -74,7 +76,7 @@ func NewMessageBoardServer(id int64) *MessageBoardServer {
 	userStorage := storage.NewLockableMap[int64, *UserData]()
 	topicStorage := storage.NewLockableMap[int64, *TopicData]()
 	messageStorage := storage.NewLockableMap[int64, *MessageData]()
-	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0}
+	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0}
 }
 
 // generates random user id and adds to map
@@ -182,7 +184,7 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 	if msg, err := server.PostMessage(ctx, in); err == nil {
 		messageData.Dirty = false
 		server.MessageStorage.Put(messageId, messageData)
-			// publish event
+		// publish event
 		seq := atomic.AddInt64(&server.seq, 1)
 		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_POST, Message: message, EventAt: timestamppb.Now()}
 		server.publishEvent(event)
@@ -193,10 +195,6 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 	} else {
 		return nil, err
 	}
-
-
-
-
 
 }
 
@@ -224,6 +222,7 @@ func (server *MessageBoardServer) UpdateMessage(ctx context.Context, in *protobu
 	}
 	if msg, err := server.ClientNext.UpdateMessage(ctx, in); err == nil {
 		msgData.Dirty = false
+
 		server.MessageStorage.Put(in.MessageId, msgData)
 		seq := atomic.AddInt64(&server.seq, 1)
 		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_UPDATE, Message: msg, EventAt: timestamppb.Now()}
@@ -234,17 +233,15 @@ func (server *MessageBoardServer) UpdateMessage(ctx context.Context, in *protobu
 		return nil, clientStopedErr
 	} else {
 		return nil, err
-		msg.Text = in.Text
-		server.MessageStorage.Put(in.MessageId, msg)
-	
+
 	}
 }
 
 func (server *MessageBoardServer) DeleteMessage(ctx context.Context, in *protobufRazpravljalnica.DeleteMessageRequest) (*emptypb.Empty, error) {
 	// prepare event for delete (include message id)
-	if msg, ok := server.MessageStorage.GetValByKey(in.MessageId); ok {
+	if msgData, ok := server.MessageStorage.GetValByKey(in.MessageId); ok {
 		seq := atomic.AddInt64(&server.seq, 1)
-		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_DELETE, Message: msg, EventAt: timestamppb.Now()}
+		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_DELETE, Message: msgData.Message, EventAt: timestamppb.Now()}
 		server.publishEvent(event)
 	}
 
@@ -288,12 +285,9 @@ func (server *MessageBoardServer) LikeMessage(ctx context.Context, in *protobufR
 	message.Likes++
 	server.MessageStorage.Put(in.MessageId, message)
 	if server.ClientNext == nil {
-	seq := atomic.AddInt64(&server.seq, 1)
-	event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_LIKE, Message: message, EventAt: timestamppb.Now()}
-	server.publishEvent(event)
-	seq := atomic.AddInt64(&server.seq, 1)
-	event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_LIKE, Message: message, EventAt: timestamppb.Now()}
-	server.publishEvent(event)
+		seq := atomic.AddInt64(&server.seq, 1)
+		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_LIKE, Message: message.Message, EventAt: timestamppb.Now()}
+		server.publishEvent(event)
 		return message.Message, nil
 	} else if message, err := server.ClientNext.LikeMessage(ctx, in); err == nil {
 		return message, nil
@@ -303,7 +297,6 @@ func (server *MessageBoardServer) LikeMessage(ctx context.Context, in *protobufR
 	} else {
 		return nil, err
 	}
-	
 
 }
 
@@ -336,4 +329,104 @@ func (server *MessageBoardServer) GetVersion() int64 {
 	currentVersion := server.Version.Load()
 	server.Version.Add(1)
 	return currentVersion
+}
+
+func (server *MessageBoardServer) publishEvent(ev *protobufRazpravljalnica.MessageEvent) {
+	server.subMu.Lock()
+	subs := len(server.subscribers)
+	server.subMu.Unlock()
+
+	// debug: show there are subscribers
+	if subs == 0 {
+		// no subscribers; nothing to do
+		return
+	}
+
+	server.subMu.Lock()
+	defer server.subMu.Unlock()
+	for id, eventChan := range server.subscribers {
+		select {
+		case eventChan <- ev:
+			// delivered
+			fmt.Println("publishEvent: delivered to subscriber", id, "seq", ev.SequenceNumber)
+		default:
+			// subscriber is unreachable (likely a better way to do this but i can't find it)
+			fmt.Println("publishEvent: drop for subscriber", id)
+			_ = id
+		}
+	}
+}
+
+func (server *MessageBoardServer) ReadMessage(ctx context.Context, in *protobufRazpravljalnica.ReadMessageRequest) (*protobufRazpravljalnica.Message, error) {
+	if msgData, ok := server.MessageStorage.GetValByKey(in.Id); !ok {
+		return nil, dataNotAvailableErr
+	} else {
+		return msgData.Message, nil
+	}
+}
+
+func (server *MessageBoardServer) ReadUser(ctx context.Context, in *protobufRazpravljalnica.ReadUserRequest) (*protobufRazpravljalnica.User, error) {
+	if userData, ok := server.UserStorage.GetValByKey(in.Id); !ok {
+		return nil, dataNotAvailableErr
+	} else {
+		return userData.User, nil
+	}
+}
+
+func (server *MessageBoardServer) ReadTopic(ctx context.Context, in *protobufRazpravljalnica.ReadTopicRequest) (*protobufRazpravljalnica.Topic, error) {
+	if topicData, ok := server.TopicStorage.GetValByKey(in.Id); !ok {
+		return nil, dataNotAvailableErr
+	} else {
+		return topicData.Topic, nil
+	}
+}
+
+func (server *MessageBoardServer) ListTopicsFromInner(ctx context.Context, empty *emptypb.Empty) (*protobufRazpravljalnica.ListTopicsResponse, error) {
+	topicsData := server.TopicStorage.GetAllValues()
+	topicsResponse := []*protobufRazpravljalnica.Topic{}
+	for _, td := range topicsData {
+		if !td.Dirty {
+			fmt.Println("current version already clean")
+			topicsResponse = append(topicsResponse, td.Topic)
+		} else if server.ClientTail != nil {
+			ctx1, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			if topic, err := server.ClientTail.ReadTopic(ctx1, &protobufRazpravljalnica.ReadTopicRequest{Id: td.Topic.Id}); err != nil {
+				return nil, err
+			} else {
+				fmt.Println("clean version succ retreived from the tail")
+				topicsResponse = append(topicsResponse, topic)
+			}
+
+		} else {
+			panic("this is not supposed to be ever called")
+		}
+	}
+	listTopicResponse := &protobufRazpravljalnica.ListTopicsResponse{Topics: topicsResponse}
+	return listTopicResponse, nil
+}
+
+func (server *MessageBoardServer) ListMessagessFromInner(ctx context.Context, empty *emptypb.Empty) (*protobufRazpravljalnica.ListMessagesResponse, error) {
+	messagesData := server.TopicStorage.GetAllValues()
+	messagesResponse := []*protobufRazpravljalnica.Message{}
+	for _, msgData := range messagesData {
+		if !msgData.Dirty {
+			fmt.Println("current version already clean")
+			messagesData = append(messagesData, msgData)
+		} else if server.ClientTail != nil {
+			ctx1, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			if msg, err := server.ClientTail.ReadMessage(ctx1, &protobufRazpravljalnica.ReadMessageRequest{Id: msgData.Id}); err != nil {
+				return nil, err
+			} else {
+				fmt.Println("clean version succ retreived from the tail")
+				messagesResponse = append(messagesResponse, msg)
+			}
+
+		} else {
+			panic("this is not supposed to be ever called")
+		}
+	}
+	listTopicResponse := &protobufRazpravljalnica.ListMessagesResponse{Messages: messagesResponse}
+	return listTopicResponse, nil
 }

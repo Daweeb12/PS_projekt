@@ -2,7 +2,6 @@ package master_node
 
 import (
 	pbRaz "PS_projekt/api/grpc/protobufRazpravljalnica"
-	protobufInt "PS_projekt/github.com/david/PS_projekt/api/grpc/protobufInternal"
 	"context"
 	"fmt"
 	"math/rand"
@@ -28,7 +27,7 @@ func NewNode(msgBoardClient pbRaz.MessageBoardClient, conn *grpc.ClientConn, id 
 	return &Node{msgBoardClient, conn, addr, id, nil, nil}
 }
 
-func (masterNode *MasterNode) GetRandomNode(ctx context.Context, empty *emptypb.Empty) (*protobufInt.GenerateRandomNodeResponse, error) {
+func (masterNode *MasterNode) GetRandomNode(ctx context.Context, empty *emptypb.Empty) (*pbRaz.GenerateRandomNodeResponse, error) {
 	masterNode.Mu.Lock()
 	defer masterNode.Mu.Unlock()
 	chainLen := masterNode.ChainLen.Load()
@@ -36,8 +35,8 @@ func (masterNode *MasterNode) GetRandomNode(ctx context.Context, empty *emptypb.
 	var counter int64 = 0
 	for node := masterNode.Head; node != nil; node = node.Next {
 		if counter == randNode {
-			nodeData := &protobufInt.NodeData{Id: node.Id, Address: node.Url}
-			generateRandomNodeResponse := &protobufInt.GenerateRandomNodeResponse{Node: nodeData}
+			nodeData := &pbRaz.NodeData{Id: node.Id, Address: node.Url}
+			generateRandomNodeResponse := &pbRaz.GenerateRandomNodeResponse{Node: nodeData}
 			return generateRandomNodeResponse, nil
 		}
 		counter++

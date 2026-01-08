@@ -1,7 +1,6 @@
 package master_node
 
 import (
-	protobufInt "PS_projekt/api/grpc/protobufInternal"
 	pbRaz "PS_projekt/api/grpc/protobufRazpravljalnica"
 	"sync"
 
@@ -22,13 +21,13 @@ import (
 )
 
 type MasterNode struct {
-	protobufInt.UnimplementedMasterNodeServer
+	pbRaz.UnimplementedMasterNodeServer
 	Id          int64
 	Url         string
 	Chain       *Node
 	Tail        *Node
 	Head        *Node
-	clientConns []protobufInt.ChainNodeClient
+	clientConns []pbRaz.ChainNodeClient
 	ChainLen    atomic.Int64
 	Mu          sync.Mutex
 }
@@ -38,12 +37,12 @@ var (
 )
 
 func NewMasterNode(id int64, addr string) *MasterNode {
-	return &MasterNode{protobufInt.UnimplementedMasterNodeServer{}, id, addr, nil, nil, nil, []protobufInt.ChainNodeClient{}, atomic.Int64{}, sync.Mutex{}}
+	return &MasterNode{pbRaz.UnimplementedMasterNodeServer{}, id, addr, nil, nil, nil, []pbRaz.ChainNodeClient{}, atomic.Int64{}, sync.Mutex{}}
 }
 
-func (masterNode *MasterNode) SignalAlive(ctx context.Context, in *protobufInt.SignalAliveRequest) (*protobufInt.SignalAliveResponse, error) {
+func (masterNode *MasterNode) SignalAlive(ctx context.Context, in *pbRaz.SignalAliveRequest) (*pbRaz.SignalAliveResponse, error) {
 	id, nodeUrl := in.NodeId, in.NodeUrl
-	signalAliveResponse := &protobufInt.SignalAliveResponse{MasterUrl: masterNode.Url}
+	signalAliveResponse := &pbRaz.SignalAliveResponse{MasterUrl: masterNode.Url}
 	masterNode.openNewClient(nodeUrl, id)
 	return signalAliveResponse, nil
 }
@@ -169,21 +168,21 @@ func (masterNode *MasterNode) reconfigTail(errorCh chan error) {
 
 }
 
-func (masterNode *MasterNode) GetClusterState(ctx context.Context, empty *emptypb.Empty) (*protobufInt.GetClusterStateResponse, error) {
+func (masterNode *MasterNode) GetClusterState(ctx context.Context, empty *emptypb.Empty) (*pbRaz.GetClusterStateResponse, error) {
 	if masterNode == nil {
 		return nil, fmt.Errorf("master node is nil")
 	}
-	clusterStateResp := &protobufInt.GetClusterStateResponse{}
+	clusterStateResp := &pbRaz.GetClusterStateResponse{}
 	fmt.Println("masterNode trying to send the head and the tail")
 	fmt.Println("head", masterNode.Head)
 	fmt.Println("tail", masterNode.Tail)
 	if masterNode.Head != nil {
-		headInfo := &protobufInt.NodeData{Id: masterNode.Head.Id, Address: masterNode.Head.Url}
+		headInfo := &pbRaz.NodeData{Id: masterNode.Head.Id, Address: masterNode.Head.Url}
 		clusterStateResp.Head = headInfo
 	}
 
 	if masterNode.Tail != nil {
-		tailInfo := &protobufInt.NodeData{Id: masterNode.Tail.Id, Address: masterNode.Tail.Url}
+		tailInfo := &pbRaz.NodeData{Id: masterNode.Tail.Id, Address: masterNode.Tail.Url}
 		clusterStateResp.Tail = tailInfo
 	}
 	return clusterStateResp, nil

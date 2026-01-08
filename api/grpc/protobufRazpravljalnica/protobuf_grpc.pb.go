@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: api/grpc/protobufRazpravljalnica/protobuf.proto
+// source: protobuf.proto
 
 package razpravljalnica
 
@@ -20,21 +20,27 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	MessageBoard_CreateUser_FullMethodName          = "/razpravljalnica.MessageBoard/CreateUser"
-	MessageBoard_CreateTopic_FullMethodName         = "/razpravljalnica.MessageBoard/CreateTopic"
-	MessageBoard_PostMessage_FullMethodName         = "/razpravljalnica.MessageBoard/PostMessage"
-	MessageBoard_UpdateMessage_FullMethodName       = "/razpravljalnica.MessageBoard/UpdateMessage"
-	MessageBoard_DeleteMessage_FullMethodName       = "/razpravljalnica.MessageBoard/DeleteMessage"
-	MessageBoard_LikeMessage_FullMethodName         = "/razpravljalnica.MessageBoard/LikeMessage"
-	MessageBoard_GetSubscriptionNode_FullMethodName = "/razpravljalnica.MessageBoard/GetSubscriptionNode"
-	MessageBoard_ListTopics_FullMethodName          = "/razpravljalnica.MessageBoard/ListTopics"
-	MessageBoard_GetMessages_FullMethodName         = "/razpravljalnica.MessageBoard/GetMessages"
-	MessageBoard_SubscribeTopic_FullMethodName      = "/razpravljalnica.MessageBoard/SubscribeTopic"
-	MessageBoard_TransferData_FullMethodName        = "/razpravljalnica.MessageBoard/TransferData"
-	MessageBoard_SignalNewTail_FullMethodName       = "/razpravljalnica.MessageBoard/SignalNewTail"
-	MessageBoard_HeartBeat_FullMethodName           = "/razpravljalnica.MessageBoard/HeartBeat"
-	MessageBoard_AssignChainNode_FullMethodName     = "/razpravljalnica.MessageBoard/AssignChainNode"
-	MessageBoard_ForwardBatch_FullMethodName        = "/razpravljalnica.MessageBoard/ForwardBatch"
+	MessageBoard_CreateUser_FullMethodName            = "/razpravljalnica.MessageBoard/CreateUser"
+	MessageBoard_CreateTopic_FullMethodName           = "/razpravljalnica.MessageBoard/CreateTopic"
+	MessageBoard_PostMessage_FullMethodName           = "/razpravljalnica.MessageBoard/PostMessage"
+	MessageBoard_UpdateMessage_FullMethodName         = "/razpravljalnica.MessageBoard/UpdateMessage"
+	MessageBoard_DeleteMessage_FullMethodName         = "/razpravljalnica.MessageBoard/DeleteMessage"
+	MessageBoard_LikeMessage_FullMethodName           = "/razpravljalnica.MessageBoard/LikeMessage"
+	MessageBoard_GetSubscriptionNode_FullMethodName   = "/razpravljalnica.MessageBoard/GetSubscriptionNode"
+	MessageBoard_ListTopics_FullMethodName            = "/razpravljalnica.MessageBoard/ListTopics"
+	MessageBoard_GetMessages_FullMethodName           = "/razpravljalnica.MessageBoard/GetMessages"
+	MessageBoard_SubscribeTopic_FullMethodName        = "/razpravljalnica.MessageBoard/SubscribeTopic"
+	MessageBoard_TransferData_FullMethodName          = "/razpravljalnica.MessageBoard/TransferData"
+	MessageBoard_SignalNewTail_FullMethodName         = "/razpravljalnica.MessageBoard/SignalNewTail"
+	MessageBoard_HeartBeat_FullMethodName             = "/razpravljalnica.MessageBoard/HeartBeat"
+	MessageBoard_AssignChainNode_FullMethodName       = "/razpravljalnica.MessageBoard/AssignChainNode"
+	MessageBoard_ForwardBatch_FullMethodName          = "/razpravljalnica.MessageBoard/ForwardBatch"
+	MessageBoard_ReadLike_FullMethodName              = "/razpravljalnica.MessageBoard/ReadLike"
+	MessageBoard_ReadUser_FullMethodName              = "/razpravljalnica.MessageBoard/ReadUser"
+	MessageBoard_ReadTopic_FullMethodName             = "/razpravljalnica.MessageBoard/ReadTopic"
+	MessageBoard_ReadMessage_FullMethodName           = "/razpravljalnica.MessageBoard/ReadMessage"
+	MessageBoard_ListTopicsFromInner_FullMethodName   = "/razpravljalnica.MessageBoard/ListTopicsFromInner"
+	MessageBoard_ListMessagesFromInner_FullMethodName = "/razpravljalnica.MessageBoard/ListMessagesFromInner"
 )
 
 // MessageBoardClient is the client API for MessageBoard service.
@@ -68,6 +74,12 @@ type MessageBoardClient interface {
 	HeartBeat(ctx context.Context, in *HearthBeatRequest, opts ...grpc.CallOption) (*HearthBeatResponse, error)
 	AssignChainNode(ctx context.Context, in *AssignRequest, opts ...grpc.CallOption) (*ACK, error)
 	ForwardBatch(ctx context.Context, in *BatchRequest, opts ...grpc.CallOption) (*BatchResponse, error)
+	ReadLike(ctx context.Context, in *ReadLikeRequest, opts ...grpc.CallOption) (*Like, error)
+	ReadUser(ctx context.Context, in *ReadUserRequest, opts ...grpc.CallOption) (*User, error)
+	ReadTopic(ctx context.Context, in *ReadTopicRequest, opts ...grpc.CallOption) (*Topic, error)
+	ReadMessage(ctx context.Context, in *ReadMessageRequest, opts ...grpc.CallOption) (*Message, error)
+	ListTopicsFromInner(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListTopicsResponse, error)
+	ListMessagesFromInner(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListMessagesResponse, error)
 }
 
 type messageBoardClient struct {
@@ -261,6 +273,60 @@ func (c *messageBoardClient) ForwardBatch(ctx context.Context, in *BatchRequest,
 	return out, nil
 }
 
+func (c *messageBoardClient) ReadLike(ctx context.Context, in *ReadLikeRequest, opts ...grpc.CallOption) (*Like, error) {
+	out := new(Like)
+	err := c.cc.Invoke(ctx, MessageBoard_ReadLike_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageBoardClient) ReadUser(ctx context.Context, in *ReadUserRequest, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := c.cc.Invoke(ctx, MessageBoard_ReadUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageBoardClient) ReadTopic(ctx context.Context, in *ReadTopicRequest, opts ...grpc.CallOption) (*Topic, error) {
+	out := new(Topic)
+	err := c.cc.Invoke(ctx, MessageBoard_ReadTopic_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageBoardClient) ReadMessage(ctx context.Context, in *ReadMessageRequest, opts ...grpc.CallOption) (*Message, error) {
+	out := new(Message)
+	err := c.cc.Invoke(ctx, MessageBoard_ReadMessage_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageBoardClient) ListTopicsFromInner(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListTopicsResponse, error) {
+	out := new(ListTopicsResponse)
+	err := c.cc.Invoke(ctx, MessageBoard_ListTopicsFromInner_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messageBoardClient) ListMessagesFromInner(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListMessagesResponse, error) {
+	out := new(ListMessagesResponse)
+	err := c.cc.Invoke(ctx, MessageBoard_ListMessagesFromInner_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MessageBoardServer is the server API for MessageBoard service.
 // All implementations must embed UnimplementedMessageBoardServer
 // for forward compatibility
@@ -292,6 +358,12 @@ type MessageBoardServer interface {
 	HeartBeat(context.Context, *HearthBeatRequest) (*HearthBeatResponse, error)
 	AssignChainNode(context.Context, *AssignRequest) (*ACK, error)
 	ForwardBatch(context.Context, *BatchRequest) (*BatchResponse, error)
+	ReadLike(context.Context, *ReadLikeRequest) (*Like, error)
+	ReadUser(context.Context, *ReadUserRequest) (*User, error)
+	ReadTopic(context.Context, *ReadTopicRequest) (*Topic, error)
+	ReadMessage(context.Context, *ReadMessageRequest) (*Message, error)
+	ListTopicsFromInner(context.Context, *emptypb.Empty) (*ListTopicsResponse, error)
+	ListMessagesFromInner(context.Context, *emptypb.Empty) (*ListMessagesResponse, error)
 	mustEmbedUnimplementedMessageBoardServer()
 }
 
@@ -343,6 +415,24 @@ func (UnimplementedMessageBoardServer) AssignChainNode(context.Context, *AssignR
 }
 func (UnimplementedMessageBoardServer) ForwardBatch(context.Context, *BatchRequest) (*BatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForwardBatch not implemented")
+}
+func (UnimplementedMessageBoardServer) ReadLike(context.Context, *ReadLikeRequest) (*Like, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadLike not implemented")
+}
+func (UnimplementedMessageBoardServer) ReadUser(context.Context, *ReadUserRequest) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadUser not implemented")
+}
+func (UnimplementedMessageBoardServer) ReadTopic(context.Context, *ReadTopicRequest) (*Topic, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadTopic not implemented")
+}
+func (UnimplementedMessageBoardServer) ReadMessage(context.Context, *ReadMessageRequest) (*Message, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadMessage not implemented")
+}
+func (UnimplementedMessageBoardServer) ListTopicsFromInner(context.Context, *emptypb.Empty) (*ListTopicsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTopicsFromInner not implemented")
+}
+func (UnimplementedMessageBoardServer) ListMessagesFromInner(context.Context, *emptypb.Empty) (*ListMessagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMessagesFromInner not implemented")
 }
 func (UnimplementedMessageBoardServer) mustEmbedUnimplementedMessageBoardServer() {}
 
@@ -638,6 +728,114 @@ func _MessageBoard_ForwardBatch_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MessageBoard_ReadLike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadLikeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageBoardServer).ReadLike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageBoard_ReadLike_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageBoardServer).ReadLike(ctx, req.(*ReadLikeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageBoard_ReadUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageBoardServer).ReadUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageBoard_ReadUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageBoardServer).ReadUser(ctx, req.(*ReadUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageBoard_ReadTopic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadTopicRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageBoardServer).ReadTopic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageBoard_ReadTopic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageBoardServer).ReadTopic(ctx, req.(*ReadTopicRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageBoard_ReadMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageBoardServer).ReadMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageBoard_ReadMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageBoardServer).ReadMessage(ctx, req.(*ReadMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageBoard_ListTopicsFromInner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageBoardServer).ListTopicsFromInner(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageBoard_ListTopicsFromInner_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageBoardServer).ListTopicsFromInner(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageBoard_ListMessagesFromInner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessageBoardServer).ListMessagesFromInner(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MessageBoard_ListMessagesFromInner_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessageBoardServer).ListMessagesFromInner(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MessageBoard_ServiceDesc is the grpc.ServiceDesc for MessageBoard service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -697,6 +895,30 @@ var MessageBoard_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ForwardBatch",
 			Handler:    _MessageBoard_ForwardBatch_Handler,
 		},
+		{
+			MethodName: "ReadLike",
+			Handler:    _MessageBoard_ReadLike_Handler,
+		},
+		{
+			MethodName: "ReadUser",
+			Handler:    _MessageBoard_ReadUser_Handler,
+		},
+		{
+			MethodName: "ReadTopic",
+			Handler:    _MessageBoard_ReadTopic_Handler,
+		},
+		{
+			MethodName: "ReadMessage",
+			Handler:    _MessageBoard_ReadMessage_Handler,
+		},
+		{
+			MethodName: "ListTopicsFromInner",
+			Handler:    _MessageBoard_ListTopicsFromInner_Handler,
+		},
+		{
+			MethodName: "ListMessagesFromInner",
+			Handler:    _MessageBoard_ListMessagesFromInner_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -710,5 +932,333 @@ var MessageBoard_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "api/grpc/protobufRazpravljalnica/protobuf.proto",
+	Metadata: "protobuf.proto",
+}
+
+const (
+	ChainNode_Read_FullMethodName = "/razpravljalnica.ChainNode/Read"
+)
+
+// ChainNodeClient is the client API for ChainNode service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ChainNodeClient interface {
+	Read(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadResponse, error)
+}
+
+type chainNodeClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewChainNodeClient(cc grpc.ClientConnInterface) ChainNodeClient {
+	return &chainNodeClient{cc}
+}
+
+func (c *chainNodeClient) Read(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadResponse, error) {
+	out := new(ReadResponse)
+	err := c.cc.Invoke(ctx, ChainNode_Read_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ChainNodeServer is the server API for ChainNode service.
+// All implementations must embed UnimplementedChainNodeServer
+// for forward compatibility
+type ChainNodeServer interface {
+	Read(context.Context, *ReadRequest) (*ReadResponse, error)
+	mustEmbedUnimplementedChainNodeServer()
+}
+
+// UnimplementedChainNodeServer must be embedded to have forward compatible implementations.
+type UnimplementedChainNodeServer struct {
+}
+
+func (UnimplementedChainNodeServer) Read(context.Context, *ReadRequest) (*ReadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Read not implemented")
+}
+func (UnimplementedChainNodeServer) mustEmbedUnimplementedChainNodeServer() {}
+
+// UnsafeChainNodeServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ChainNodeServer will
+// result in compilation errors.
+type UnsafeChainNodeServer interface {
+	mustEmbedUnimplementedChainNodeServer()
+}
+
+func RegisterChainNodeServer(s grpc.ServiceRegistrar, srv ChainNodeServer) {
+	s.RegisterService(&ChainNode_ServiceDesc, srv)
+}
+
+func _ChainNode_Read_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChainNodeServer).Read(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChainNode_Read_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChainNodeServer).Read(ctx, req.(*ReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ChainNode_ServiceDesc is the grpc.ServiceDesc for ChainNode service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ChainNode_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "razpravljalnica.ChainNode",
+	HandlerType: (*ChainNodeServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Read",
+			Handler:    _ChainNode_Read_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "protobuf.proto",
+}
+
+const (
+	MasterNode_SignalAlive_FullMethodName        = "/razpravljalnica.MasterNode/SignalAlive"
+	MasterNode_ReadFromNodes_FullMethodName      = "/razpravljalnica.MasterNode/ReadFromNodes"
+	MasterNode_GetClusterState_FullMethodName    = "/razpravljalnica.MasterNode/GetClusterState"
+	MasterNode_GenerateRandomNode_FullMethodName = "/razpravljalnica.MasterNode/GenerateRandomNode"
+	MasterNode_SignalNewTail_FullMethodName      = "/razpravljalnica.MasterNode/SignalNewTail"
+)
+
+// MasterNodeClient is the client API for MasterNode service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type MasterNodeClient interface {
+	SignalAlive(ctx context.Context, in *SignalAliveRequest, opts ...grpc.CallOption) (*SignalAliveResponse, error)
+	ReadFromNodes(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadResponse, error)
+	GetClusterState(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetClusterStateResponse, error)
+	GenerateRandomNode(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GenerateRandomNodeResponse, error)
+	SignalNewTail(ctx context.Context, in *NewTailRequest, opts ...grpc.CallOption) (*NewTailResponse, error)
+}
+
+type masterNodeClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewMasterNodeClient(cc grpc.ClientConnInterface) MasterNodeClient {
+	return &masterNodeClient{cc}
+}
+
+func (c *masterNodeClient) SignalAlive(ctx context.Context, in *SignalAliveRequest, opts ...grpc.CallOption) (*SignalAliveResponse, error) {
+	out := new(SignalAliveResponse)
+	err := c.cc.Invoke(ctx, MasterNode_SignalAlive_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterNodeClient) ReadFromNodes(ctx context.Context, in *ReadRequest, opts ...grpc.CallOption) (*ReadResponse, error) {
+	out := new(ReadResponse)
+	err := c.cc.Invoke(ctx, MasterNode_ReadFromNodes_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterNodeClient) GetClusterState(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetClusterStateResponse, error) {
+	out := new(GetClusterStateResponse)
+	err := c.cc.Invoke(ctx, MasterNode_GetClusterState_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterNodeClient) GenerateRandomNode(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GenerateRandomNodeResponse, error) {
+	out := new(GenerateRandomNodeResponse)
+	err := c.cc.Invoke(ctx, MasterNode_GenerateRandomNode_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterNodeClient) SignalNewTail(ctx context.Context, in *NewTailRequest, opts ...grpc.CallOption) (*NewTailResponse, error) {
+	out := new(NewTailResponse)
+	err := c.cc.Invoke(ctx, MasterNode_SignalNewTail_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// MasterNodeServer is the server API for MasterNode service.
+// All implementations must embed UnimplementedMasterNodeServer
+// for forward compatibility
+type MasterNodeServer interface {
+	SignalAlive(context.Context, *SignalAliveRequest) (*SignalAliveResponse, error)
+	ReadFromNodes(context.Context, *ReadRequest) (*ReadResponse, error)
+	GetClusterState(context.Context, *emptypb.Empty) (*GetClusterStateResponse, error)
+	GenerateRandomNode(context.Context, *emptypb.Empty) (*GenerateRandomNodeResponse, error)
+	SignalNewTail(context.Context, *NewTailRequest) (*NewTailResponse, error)
+	mustEmbedUnimplementedMasterNodeServer()
+}
+
+// UnimplementedMasterNodeServer must be embedded to have forward compatible implementations.
+type UnimplementedMasterNodeServer struct {
+}
+
+func (UnimplementedMasterNodeServer) SignalAlive(context.Context, *SignalAliveRequest) (*SignalAliveResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SignalAlive not implemented")
+}
+func (UnimplementedMasterNodeServer) ReadFromNodes(context.Context, *ReadRequest) (*ReadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadFromNodes not implemented")
+}
+func (UnimplementedMasterNodeServer) GetClusterState(context.Context, *emptypb.Empty) (*GetClusterStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetClusterState not implemented")
+}
+func (UnimplementedMasterNodeServer) GenerateRandomNode(context.Context, *emptypb.Empty) (*GenerateRandomNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateRandomNode not implemented")
+}
+func (UnimplementedMasterNodeServer) SignalNewTail(context.Context, *NewTailRequest) (*NewTailResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SignalNewTail not implemented")
+}
+func (UnimplementedMasterNodeServer) mustEmbedUnimplementedMasterNodeServer() {}
+
+// UnsafeMasterNodeServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to MasterNodeServer will
+// result in compilation errors.
+type UnsafeMasterNodeServer interface {
+	mustEmbedUnimplementedMasterNodeServer()
+}
+
+func RegisterMasterNodeServer(s grpc.ServiceRegistrar, srv MasterNodeServer) {
+	s.RegisterService(&MasterNode_ServiceDesc, srv)
+}
+
+func _MasterNode_SignalAlive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignalAliveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterNodeServer).SignalAlive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterNode_SignalAlive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterNodeServer).SignalAlive(ctx, req.(*SignalAliveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterNode_ReadFromNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterNodeServer).ReadFromNodes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterNode_ReadFromNodes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterNodeServer).ReadFromNodes(ctx, req.(*ReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterNode_GetClusterState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterNodeServer).GetClusterState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterNode_GetClusterState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterNodeServer).GetClusterState(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterNode_GenerateRandomNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterNodeServer).GenerateRandomNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterNode_GenerateRandomNode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterNodeServer).GenerateRandomNode(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterNode_SignalNewTail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NewTailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterNodeServer).SignalNewTail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterNode_SignalNewTail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterNodeServer).SignalNewTail(ctx, req.(*NewTailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// MasterNode_ServiceDesc is the grpc.ServiceDesc for MasterNode service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var MasterNode_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "razpravljalnica.MasterNode",
+	HandlerType: (*MasterNodeServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SignalAlive",
+			Handler:    _MasterNode_SignalAlive_Handler,
+		},
+		{
+			MethodName: "ReadFromNodes",
+			Handler:    _MasterNode_ReadFromNodes_Handler,
+		},
+		{
+			MethodName: "GetClusterState",
+			Handler:    _MasterNode_GetClusterState_Handler,
+		},
+		{
+			MethodName: "GenerateRandomNode",
+			Handler:    _MasterNode_GenerateRandomNode_Handler,
+		},
+		{
+			MethodName: "SignalNewTail",
+			Handler:    _MasterNode_SignalNewTail_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "protobuf.proto",
 }

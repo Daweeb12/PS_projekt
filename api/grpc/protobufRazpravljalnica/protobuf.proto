@@ -96,6 +96,13 @@ service  MessageBoard{
   rpc HeartBeat(HearthBeatRequest) returns (HearthBeatResponse);
   rpc AssignChainNode(AssignRequest) returns (ACK);
   rpc ForwardBatch(BatchRequest) returns (BatchResponse);
+  rpc ReadLike(ReadLikeRequest) returns (Like);
+  rpc ReadUser(ReadUserRequest) returns (User);
+  rpc ReadTopic(ReadTopicRequest) returns (Topic);
+  rpc ReadMessage(ReadMessageRequest) returns (Message);
+  rpc ListTopicsFromInner(google.protobuf.Empty)returns (ListTopicsResponse);
+  rpc ListMessagesFromInner(google.protobuf.Empty)returns (ListMessagesResponse);
+
 }
 
 message CreateUserRequest {
@@ -241,3 +248,125 @@ message BatchResponse{
    int64 version = 1 ; 
    bool success = 2 ; 
 }
+
+
+///////////////////////////////////////////////////////
+//Chain node types 
+///////////////////////////////////////////////////////
+//
+message NodeData{
+  int64 id = 1 ;
+  string address = 2 ; 
+}
+service ChainNode{
+
+  rpc Read(ReadRequest) returns (ReadResponse);
+  //rpc TransferData(stream Data) returns 
+}
+
+///////////////////////////////////////////////////////
+//MasterNode
+///////////////////////////////////////////////////////
+service MasterNode{
+  rpc SignalAlive(SignalAliveRequest)returns (SignalAliveResponse);
+  rpc ReadFromNodes(ReadRequest) returns (ReadResponse);
+  rpc GetClusterState(google.protobuf.Empty)returns(GetClusterStateResponse);
+  rpc GenerateRandomNode(google.protobuf.Empty)returns(GenerateRandomNodeResponse);
+  rpc SignalNewTail(NewTailRequest) returns (NewTailResponse); 
+}
+message SignalAliveRequest {
+  int64 nodeId = 1 ; 
+  string nodeUrl = 2 ;
+}
+
+message SignalAliveResponse {
+  string masterUrl = 1 ; 
+}
+
+message GetClusterStateResponse{
+  NodeData head = 1 ; 
+  NodeData tail = 2 ; 
+}
+
+message GenerateRandomNodeResponse{
+  NodeData node = 1 ; 
+}
+
+message NewTailRequest{
+  int64 id = 1 ; 
+  string url = 2 ;
+}
+
+message NewTailResponse{
+  bool succ = 1 ;
+}
+
+
+
+
+
+
+
+
+message ForwardRequest{
+    int64 id = 1; 
+   int64 version = 2;
+}
+
+message UpdateRequest{
+  int64 id = 1; 
+   int64 data =2 ; 
+}
+
+/////////////////////////////////////////////////
+//CRAQ implementation 
+/////////////////////////////////////////////////
+//
+
+message ReadRequest {
+  int64 id = 1 ;
+}
+
+message ReadResponse{
+  bool ok = 1 ; 
+  int64 data = 2 ;
+}
+
+
+
+message Data {
+  repeated razpravljalnica.User users  =1 ; 
+  repeated razpravljalnica.Message messages =2 ; 
+  repeated razpravljalnica.Topic topics = 3 ; 
+  repeated razpravljalnica.Like likes  = 4 ; 
+
+}
+
+
+
+
+/////////////////////////////////////////////////
+//RPC calls used to read data primerally used for reading from the tail if the data is not clean 
+/////////////////////////////////////////////////
+
+message ReadLikeRequest{
+  int64 id = 1 ; 
+}
+
+message ReadMessageRequest{
+  int64 id = 1 ; 
+}
+
+message ReadUserRequest{
+  int64 id = 1 ; 
+}
+
+message ReadTopicRequest{
+  int64 id = 1 ; 
+}
+
+
+message ListMessagesResponse{
+   repeated Message messages = 1 ;
+}
+

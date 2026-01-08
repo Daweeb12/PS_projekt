@@ -1,7 +1,6 @@
 package main
 
 import (
-	protobufInt "PS_projekt/api/grpc/protobufInternal"
 	protobufRaz "PS_projekt/api/grpc/protobufRazpravljalnica"
 	// chain_node "PS_projekt/craq/chain_node"
 	master_node "PS_projekt/craq/master_node"
@@ -64,7 +63,7 @@ func AddMsgBoardServer(nodeUrl, masterUrl string, id int64) {
 func StartMasterServer(url string, id int64) {
 	grpcServer := grpc.NewServer()
 	masterNode := master_node.NewMasterNode(id, url)
-	protobufInt.RegisterMasterNodeServer(grpcServer, masterNode)
+	protobufRaz.RegisterMasterNodeServer(grpcServer, masterNode)
 	ls, err := net.Listen("tcp", url)
 	if err != nil {
 		panic(err)
@@ -97,10 +96,10 @@ func notifyMaster(nodeId int64, masterAddr, nodeAddr string) error {
 	}
 	defer conn.Close()
 	fmt.Println("tried to notify server")
-	grpcClient := protobufInt.NewMasterNodeClient(conn)
+	grpcClient := protobufRaz.NewMasterNodeClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if _, err := grpcClient.SignalAlive(ctx, &protobufInt.SignalAliveRequest{NodeId: nodeId, NodeUrl: nodeAddr}); err != nil {
+	if _, err := grpcClient.SignalAlive(ctx, &protobufRaz.SignalAliveRequest{NodeId: nodeId, NodeUrl: nodeAddr}); err != nil {
 		fmt.Println(err)
 		return err
 	}
