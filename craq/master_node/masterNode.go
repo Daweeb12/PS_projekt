@@ -32,10 +32,6 @@ type MasterNode struct {
 	Mu          sync.Mutex
 }
 
-var (
-	reconfigCh chan struct{}
-)
-
 func NewMasterNode(id int64, addr string) *MasterNode {
 	return &MasterNode{pbRaz.UnimplementedMasterNodeServer{}, id, addr, nil, nil, nil, []pbRaz.ChainNodeClient{}, atomic.Int64{}, sync.Mutex{}}
 }
@@ -64,11 +60,11 @@ func (masterNode *MasterNode) CheckHealth() error {
 	i := 0
 	for node := masterNode.Head; node != nil; node = node.Next {
 		grpcClient := node.msgBoardClient
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		_, err := grpcClient.HeartBeat(ctx, &pbRaz.HearthBeatRequest{})
 		if errors.Is(err, context.DeadlineExceeded) {
-			fmt.Println("node ", i, " has stopped responding")
+			//fmt.Println("node ", i, " has stopped responding")
 		} else if status.Code(err) == codes.Unavailable {
 			masterNode.RemoveNode(node)
 		} else if err != nil {
@@ -81,7 +77,7 @@ func (masterNode *MasterNode) CheckHealth() error {
 
 func (masterNode *MasterNode) RemoveNode(target *Node) {
 	masterNode.Mu.Lock()
-	fmt.Println("removing node: ", target)
+	//fmt.Println("removing node: ", target)
 	masterNode.ChainLen.Add(-1)
 	defer masterNode.Mu.Unlock()
 	if target != nil && target.conn != nil {
@@ -115,56 +111,55 @@ func (masterNode *MasterNode) RemoveNode(target *Node) {
 func (masterNode *MasterNode) AddNode(node *Node) error {
 	masterNode.Mu.Lock()
 	masterNode.ChainLen.Add(1)
-	fmt.Println("adding node: ", node)
+	//fmt.Println("adding node: ", node)
 	defer masterNode.Mu.Unlock()
 	if masterNode.Tail == nil {
-		fmt.Println("added first node")
+		//fmt.Println("added first node")
 		masterNode.Head = node
 		masterNode.Tail = node
 		fmt.Println(node)
 		return nil
 	}
-	//errCh := make(chan error)
-	//	go masterNode.reconfigTail(errCh)
-	//	if err := <-errCh; err != nil {
-	//		return err
-	//	}
-	fmt.Println("added to tail")
-	fmt.Println(node)
+
+	//fmt.Println("added to tail")
+	//fmt.Println(node)
 	oldTail := masterNode.Tail
 	oldTail.Next = node
 	node.Prev = oldTail
 	masterNode.Tail = node
 
-	// assignmentPrevTailReq := pbRaz.AssignRequest{Id: node.Id, NextUrl: node.Url, PrevUrl: "", TailUrl: node.Url}
-	// assignmentNewTailReq := pbRaz.AssignRequest{Id: masterNode.Tail.Id, NextUrl: "", PrevUrl: oldTail.Url, TailUrl: ""}
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	// defer cancel()
-	// if _, err := oldTail.msgBoardClient.AssignChainNode(ctx, &assignmentPrevTailReq); err != nil {
-	// 	return err
-	// }
-	// ctx, cancel = context.WithTimeout(context.Background(), time.Second)
-	// defer cancel()
-	// if _, err := node.msgBoardClient.AssignChainNode(ctx, &assignmentNewTailReq); err != nil {
-	// 	return err
-	// }
+	assignmentPrevTailReq := pbRaz.AssignRequest{Id: node.Id, NextUrl: node.Url, PrevUrl: "", TailUrl: node.Url}
+	assignmentNewTailReq := pbRaz.AssignRequest{Id: masterNode.Tail.Id, NextUrl: "", PrevUrl: oldTail.Url, TailUrl: ""}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := oldTail.msgBoardClient.AssignChainNode(ctx, &assignmentPrevTailReq); err != nil {
+		return err
+	}
+	ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := node.msgBoardClient.AssignChainNode(ctx, &assignmentNewTailReq); err != nil {
+		return err
+	}
+	if err := masterNode.reconfigTail(oldTail.msgBoardClient); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (masterNode *MasterNode) reconfigTail(errorCh chan error) {
-	defer close(reconfigCh)
+func (masterNode *MasterNode) reconfigTail(oldTailClient pbRaz.MessageBoardClient) error {
+	nodeInfo := &pbRaz.NodeInfo{NodeId: masterNode.Tail.Id, Address: masterNode.Tail.Url}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	fmt.Println("sent req to reconfig tail")
 	defer cancel()
-	ack, err := masterNode.Tail.msgBoardClient.SignalNewTail(ctx, &pbRaz.SyncTailsRequest{})
+	ack, err := oldTailClient.SignalNewTail(ctx, &pbRaz.SyncTailsRequest{NewTail: nodeInfo})
 	if err != nil {
-		errorCh <- err
-		return
+		return err
 	}
 	if !ack.Succ {
-		errorCh <- fmt.Errorf("did not receive succ ack ")
-	} else {
-		errorCh <- nil
+		return err
 	}
+	return nil
 
 }
 

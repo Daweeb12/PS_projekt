@@ -71,12 +71,9 @@ func StartMasterServer(url string, id int64) {
 	fmt.Println("master server listening on ", url)
 	go func(masterNode *master_node.MasterNode) {
 		for {
-			fmt.Println("head", masterNode.Head)
-			fmt.Println("tail ", masterNode.Tail)
 
-			fmt.Println()
+			//fmt.Println()
 			if err := masterNode.CheckHealth(); status.Code(err) == codes.Unavailable {
-				fmt.Println("should remove node")
 			} else {
 				fmt.Println(err)
 			}
@@ -97,7 +94,7 @@ func notifyMaster(nodeId int64, masterAddr, nodeAddr string) error {
 	defer conn.Close()
 	fmt.Println("tried to notify server")
 	grpcClient := protobufRaz.NewMasterNodeClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if _, err := grpcClient.SignalAlive(ctx, &protobufRaz.SignalAliveRequest{NodeId: nodeId, NodeUrl: nodeAddr}); err != nil {
 		fmt.Println(err)

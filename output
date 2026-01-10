@@ -1,0 +1,985 @@
+master server listening on  localhost:9000
+<nil>
+<nil>
+<nil>
+localhost:9001
+tried to notify server
+&{0xc0003a8008}
+&{0xc000392250 0xc0003a8008 localhost:9001 1 <nil> <nil>}
+chain node started listening
+localhost:9002
+<nil>
+tried to notify server
+&{0xc0003a9808}
+sent req to reconfig tail
+master node has signaled that a new tail has been added
+data transfer has been opened
+transfering data
+ended data tarnsfer
+localhost:9003
+<nil>
+tried to notify server
+&{0xc000004c08}
+chain node started listening
+sent req to reconfig tail
+master node has signaled that a new tail has been added
+data transfer has been opened
+transfering data
+ended data tarnsfer
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+masterNode trying to send the head and the tail
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+<nil>
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+data saved in  1
+masterNode trying to send the head and the tail
+data saved in  1
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+masterNode trying to send the head and the tail
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+data saved in  1
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+data saved in  1
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+data saved in  1
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+data saved in  1
+data saved in  1
+data saved in  1
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+masterNode trying to send the head and the tail
+data saved in  1
+masterNode trying to send the head and the tail
+data saved in  1
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+data saved in  1
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+masterNode trying to send the head and the tail
+masterNode trying to send the head and the tail
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+head &{0xc000392250 0xc0003a8008 localhost:9001 1 0xc00039a840 <nil>}
+tail &{0xc000110300 0xc000004c08 localhost:9003 3 <nil> 0xc00039a840}
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data transfer has ended
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+chain node started listening
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+data saved in  3
+data saved in  3
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+the data has arrived at the tail
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data saved in  3
+the data has arrived at the tail
+the data has arrived at the tail
+data is not dirty
+data is not dirty
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+data is not dirty
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  3
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data has been uploaded successfully
+data has been uploaded successfully
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  3
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data has been uploaded successfully
+data saved in  3
+data saved in  3
+the data has arrived at the tail
+the data has arrived at the tail
+data saved in  3
+data is not dirty
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data has been uploaded successfully
+the data has arrived at the tail
+data is not dirty
+the data has arrived at the tail
+data is not dirty
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data is not dirty
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  3
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data has been uploaded successfully
+data is not dirty
+data is not dirty
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+topic11  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+topic41  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+topic77  uploaded successfully
+topic79  uploaded successfully
+data has been uploaded successfully
+topic48  uploaded successfully
+data has been uploaded successfully
+topic21  uploaded successfully
+data has been uploaded successfully
+topic67  uploaded successfully
+topic7  uploaded successfully
+data has been uploaded successfully
+topic75  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+topic43  uploaded successfully
+data has been uploaded successfully
+topic35  uploaded successfully
+topic0  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+topic97  uploaded successfully
+topic70  uploaded successfully
+topic54  uploaded successfully
+data saved in  1
+data saved in  1
+topic85  uploaded successfully
+data saved in  1
+topic57  uploaded successfully
+topic101  uploaded successfully
+data saved in  1
+data saved in  1
+data saved in  1
+topic87  uploaded successfully
+data has been uploaded successfully
+topic51  uploaded successfully
+data saved in  1
+data has been uploaded successfully
+data saved in  1
+topic99  uploaded successfully
+data saved in  1
+data saved in  1
+data saved in  1
+data has been uploaded successfully
+data saved in  1
+data has been uploaded successfully
+data saved in  1
+data has been uploaded successfully
+data saved in  1
+topic45  uploaded successfully
+data has been uploaded successfully
+topic103  uploaded successfully
+topic62  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  1
+data has been uploaded successfully
+data has been uploaded successfully
+topic69  uploaded successfully
+topic55  uploaded successfully
+data saved in  1
+topic25  uploaded successfully
+data saved in  1
+topic22  uploaded successfully
+topic20  uploaded successfully
+data has been uploaded successfully
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+topic44  uploaded successfully
+topic24  uploaded successfully
+data saved in  1
+topic40  uploaded successfully
+topic86  uploaded successfully
+data saved in  2
+data saved in  1
+topic5  uploaded successfully
+data saved in  2
+data saved in  2
+topic73  uploaded successfully
+data saved in  1
+data saved in  1
+data saved in  2
+data saved in  1
+data saved in  1
+data saved in  2
+data saved in  2
+data saved in  1
+data saved in  2
+data saved in  3
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+data saved in  1
+data saved in  2
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  1
+data saved in  2
+data saved in  2
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+data saved in  2
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+the data has arrived at the tail
+data is not dirty
+data saved in  2
+data saved in  2
+data saved in  2
+data saved in  2
+data has been uploaded successfully
+rpc error: code = Unknown desc = sending data has failed
+data saved in  1
+data has been uploaded successfully
+data saved in  3
+rpc error: code = Unknown desc = sending data has failed
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+data saved in  3
+the data has arrived at the tail
+the data has arrived at the tail
+data is not dirty
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data is not dirty
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  3
+data saved in  3
+data has been uploaded successfully
+topic111  uploaded successfully
+data saved in  3
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+rpc error: code = Unknown desc = sending data has failed
+the data has arrived at the tail
+topic121  uploaded successfully
+data has been uploaded successfully
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data is not dirty
+data has been uploaded successfully
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  1
+rpc error: code = Unknown desc = sending data has failed
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+topic129  uploaded successfully
+data has been uploaded successfully
+topic126  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  1
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+topic134  uploaded successfully
+topic122  uploaded successfully
+topic118  uploaded successfully
+data saved in  1
+data saved in  1
+data has been uploaded successfully
+topic128  uploaded successfully
+data saved in  2
+data has been uploaded successfully
+data saved in  1
+data saved in  1
+data has been uploaded successfully
+topic139  uploaded successfully
+data saved in  1
+rpc error: code = Unknown desc = sending data has failed
+topic138  uploaded successfully
+topic131  uploaded successfully
+data saved in  1
+data saved in  2
+data saved in  2
+data saved in  1
+data saved in  2
+data saved in  1
+data saved in  1
+data saved in  2
+data saved in  2
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  2
+data saved in  2
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data saved in  2
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data is not dirty
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data has been uploaded successfully
+data is not dirty
+data has been uploaded successfully
+topic151  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+topic150  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+topic148  uploaded successfully
+topic149  uploaded successfully
+topic153  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  1
+data has been uploaded successfully
+data saved in  1
+data saved in  1
+data saved in  1
+topic155  uploaded successfully
+data saved in  1
+topic152  uploaded successfully
+topic154  uploaded successfully
+data saved in  1
+data saved in  1
+data saved in  2
+data saved in  2
+data saved in  1
+data saved in  2
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+rpc error: code = Unknown desc = sending data has failed
+rpc error: code = Unknown desc = sending data has failed
+data saved in  2
+data saved in  2
+data has been uploaded successfully
+rpc error: code = Unknown desc = sending data has failed
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+topic160  uploaded successfully
+data has been uploaded successfully
+data has been uploaded successfully
+data saved in  1
+topic163  uploaded successfully
+data saved in  2
+data saved in  1
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data saved in  2
+data has been uploaded successfully
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+topic164  uploaded successfully
+data has been uploaded successfully
+data saved in  1
+data has been uploaded successfully
+topic165  uploaded successfully
+data saved in  1
+data saved in  2
+data saved in  3
+the data has arrived at the tail
+data is not dirty
+data has been uploaded successfully
+data has been uploaded successfully
+topic167  uploaded successfully
+worker finished
+<nil>
+data transfer has ended
+<nil>
+<nil>

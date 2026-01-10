@@ -13,6 +13,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -20,14 +21,16 @@ import (
 
 var (
 	randMu              sync.Mutex
+	reconfigModeCh      chan struct{}
+	reconfigMode        atomic.Bool
 	topicErr            = fmt.Errorf("topic does not exist")
 	userExistsErr       = fmt.Errorf("user does not exist")
 	messageExistsErr    = fmt.Errorf("message does not exist")
 	emptyTopicErr       = fmt.Errorf("topic can not be empty")
 	emptyUsernameErr    = fmt.Errorf("username can not be empty")
 	clientStopedErr     = fmt.Errorf("the next client has stoped responding")
-	failErr             = fmt.Errorf("sending data has failed")
-	dataNotAvailableErr = fmt.Errorf("data not availabale")
+	FailErr             = fmt.Errorf("sending data has failed")
+	DataNotAvailableErr = fmt.Errorf("data not availabale")
 )
 
 // generate uint32 uids
@@ -37,10 +40,8 @@ func GenerateRand32[T comparable](s *storage.LockableMap[int64, T]) int64 {
 		randMu.Lock()
 		id := rand.Uint32()
 		randMu.Unlock()
-		fmt.Println("GenerateRand32: generated id", id)
 		// check uniqueness
 		_, ok := s.GetValByKey(int64(id))
-		fmt.Println("GenerateRand32: uniqueness check ok=", ok)
 		if !ok {
 			return int64(id)
 		}
@@ -85,6 +86,11 @@ func (server *MessageBoardServer) CreateUser(ctx context.Context, in *protobufRa
 	if strings.TrimSpace(in.Name) == "" {
 		return nil, emptyTopicErr
 	}
+
+	if reconfigMode.Load() {
+
+		<-reconfigModeCh
+	}
 	if server.ClientPrev == nil {
 		in.Version = server.GetVersion()
 	}
@@ -124,9 +130,14 @@ func (server *MessageBoardServer) CreateUser(ctx context.Context, in *protobufRa
 }
 
 func (server *MessageBoardServer) CreateTopic(ctx context.Context, in *protobufRazpravljalnica.CreateTopicRequest) (*protobufRazpravljalnica.Topic, error) {
+	fmt.Println("data saved in ", server.Id)
 	name := strings.TrimSpace(in.Name)
 	if name == "" {
 		return nil, emptyTopicErr
+	}
+	if reconfigMode.Load() {
+
+		<-reconfigModeCh
 	}
 
 	if server.ClientPrev == nil {
@@ -136,18 +147,20 @@ func (server *MessageBoardServer) CreateTopic(ctx context.Context, in *protobufR
 	id := GenerateRand32(server.TopicStorage)
 	topic := &protobufRazpravljalnica.Topic{Name: name, Id: id}
 	topicData := &TopicData{Topic: topic, Dirty: true}
-	server.TopicStorage.Put(id, topicData)
 	if server.ClientNext == nil {
 		fmt.Println("the data has arrived at the tail")
 		topicData.Dirty = false
+		fmt.Println("data is not dirty")
 		server.TopicStorage.Put(id, topicData)
 		return topic, nil
 	}
+
+	server.TopicStorage.Put(id, topicData)
 	if fail() {
-		return nil, failErr
+		return nil, FailErr
 	}
 
-	if user, err := server.ClientNext.CreateTopic(ctx, in); status.Code(err) == codes.Unavailable {
+	if topic, err := server.ClientNext.CreateTopic(ctx, in); status.Code(err) == codes.Unavailable {
 		server.handleUnavailableNode()
 		return nil, clientStopedErr
 	} else if err != nil {
@@ -156,7 +169,8 @@ func (server *MessageBoardServer) CreateTopic(ctx context.Context, in *protobufR
 	} else {
 		topicData.Dirty = false
 		server.TopicStorage.Put(id, topicData)
-		return user, nil
+		fmt.Println("data has been uploaded successfully")
+		return topic, nil
 	}
 }
 
@@ -167,6 +181,11 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 	}
 	if _, ok := server.TopicStorage.GetValByKey(topicId); !ok {
 		return nil, topicErr
+	}
+
+	if reconfigMode.Load() {
+
+		<-reconfigModeCh
 	}
 	if server.ClientPrev == nil {
 		in.Version = server.GetVersion()
@@ -179,7 +198,7 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 		return message, nil
 	}
 	if fail() {
-		return nil, failErr
+		return nil, FailErr
 	}
 	if msg, err := server.PostMessage(ctx, in); err == nil {
 		messageData.Dirty = false
@@ -210,6 +229,11 @@ func (server *MessageBoardServer) UpdateMessage(ctx context.Context, in *protobu
 		return nil, messageExistsErr
 	}
 
+	if reconfigMode.Load() {
+
+		<-reconfigModeCh
+	}
+
 	if server.ClientPrev == nil {
 		in.Version = server.GetVersion()
 	}
@@ -217,6 +241,10 @@ func (server *MessageBoardServer) UpdateMessage(ctx context.Context, in *protobu
 	msgData.Text = in.Text
 	msgData.Dirty = true
 	server.MessageStorage.Put(in.MessageId, msgData)
+
+	seq := atomic.AddInt64(&server.seq, 1)
+	event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_UPDATE, Message: msgData.Message, EventAt: timestamppb.Now()}
+	server.publishEvent(event)
 	if server.ClientNext == nil {
 		return msgData.Message, nil
 	}
@@ -224,9 +252,6 @@ func (server *MessageBoardServer) UpdateMessage(ctx context.Context, in *protobu
 		msgData.Dirty = false
 
 		server.MessageStorage.Put(in.MessageId, msgData)
-		seq := atomic.AddInt64(&server.seq, 1)
-		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_UPDATE, Message: msg, EventAt: timestamppb.Now()}
-		server.publishEvent(event)
 		return msg, nil
 	} else if status.Code(err) == codes.Unavailable {
 		server.handleUnavailableNode()
@@ -245,6 +270,9 @@ func (server *MessageBoardServer) DeleteMessage(ctx context.Context, in *protobu
 		server.publishEvent(event)
 	}
 
+	if reconfigMode.Load() {
+		<-reconfigModeCh
+	}
 	server.MessageStorage.Delete(in.MessageId)
 	if server.ClientNext == nil {
 		return &emptypb.Empty{}, nil
@@ -282,12 +310,17 @@ func (server *MessageBoardServer) LikeMessage(ctx context.Context, in *protobufR
 		return nil, messageExistsErr
 	}
 
+	if reconfigMode.Load() {
+
+		<-reconfigModeCh
+	}
 	message.Likes++
 	server.MessageStorage.Put(in.MessageId, message)
+
+	seq := atomic.AddInt64(&server.seq, 1)
+	event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_LIKE, Message: message.Message, EventAt: timestamppb.Now()}
+	server.publishEvent(event)
 	if server.ClientNext == nil {
-		seq := atomic.AddInt64(&server.seq, 1)
-		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_LIKE, Message: message.Message, EventAt: timestamppb.Now()}
-		server.publishEvent(event)
 		return message.Message, nil
 	} else if message, err := server.ClientNext.LikeMessage(ctx, in); err == nil {
 		return message, nil
@@ -312,7 +345,7 @@ func (server *MessageBoardServer) GetMessages(ctx context.Context, in *protobufR
 
 func fail() bool {
 	p := rand.Float32()
-	if p > 0.6 {
+	if p < 0.25 {
 		return true
 	}
 	return false
@@ -357,76 +390,127 @@ func (server *MessageBoardServer) publishEvent(ev *protobufRazpravljalnica.Messa
 	}
 }
 
-func (server *MessageBoardServer) ReadMessage(ctx context.Context, in *protobufRazpravljalnica.ReadMessageRequest) (*protobufRazpravljalnica.Message, error) {
+func (server *MessageBoardServer) ReadMessage(ctx context.Context, in *protobufRazpravljalnica.ReadMessageRequest) (*protobufRazpravljalnica.MessageData, error) {
 	if msgData, ok := server.MessageStorage.GetValByKey(in.Id); !ok {
-		return nil, dataNotAvailableErr
+		return nil, DataNotAvailableErr
 	} else {
-		return msgData.Message, nil
+		resp := &protobufRazpravljalnica.MessageData{Msg: msgData.Message, Dirty: msgData.IsDirty()}
+		return resp, nil
 	}
 }
 
-func (server *MessageBoardServer) ReadUser(ctx context.Context, in *protobufRazpravljalnica.ReadUserRequest) (*protobufRazpravljalnica.User, error) {
+func (server *MessageBoardServer) ReadUser(ctx context.Context, in *protobufRazpravljalnica.ReadUserRequest) (*protobufRazpravljalnica.UserData, error) {
+	fmt.Println("id: ", in.Id)
 	if userData, ok := server.UserStorage.GetValByKey(in.Id); !ok {
-		return nil, dataNotAvailableErr
+		return nil, DataNotAvailableErr
 	} else {
-		return userData.User, nil
+		resp := &protobufRazpravljalnica.UserData{User: userData.User, Dirty: userData.IsDirty()}
+		return resp, nil
 	}
 }
 
-func (server *MessageBoardServer) ReadTopic(ctx context.Context, in *protobufRazpravljalnica.ReadTopicRequest) (*protobufRazpravljalnica.Topic, error) {
+func (server *MessageBoardServer) ReadTopic(ctx context.Context, in *protobufRazpravljalnica.ReadTopicRequest) (*protobufRazpravljalnica.TopicData, error) {
+	fmt.Println("id: ", in.Id)
 	if topicData, ok := server.TopicStorage.GetValByKey(in.Id); !ok {
-		return nil, dataNotAvailableErr
+		return nil, DataNotAvailableErr
 	} else {
-		return topicData.Topic, nil
+		resp := &protobufRazpravljalnica.TopicData{Topic: topicData.Topic, Dirty: topicData.IsDirty()}
+		return resp, nil
 	}
 }
 
-func (server *MessageBoardServer) ListTopicsFromInner(ctx context.Context, empty *emptypb.Empty) (*protobufRazpravljalnica.ListTopicsResponse, error) {
+//	func (server *MessageBoardServer) ListTopicsFromInner(ctx context.Context, empty *emptypb.Empty) (*protobufRazpravljalnica.ListTopicsResponse, error) {
+//		topicsData := server.TopicStorage.GetAllValues()
+//		topicsResponse := []*protobufRazpravljalnica.Topic{}
+//		for _, td := range topicsData {
+//			if !td.Dirty {
+//				fmt.Println("current version already clean")
+//				topicsResponse = append(topicsResponse, td.Topic)
+//			} else if server.ClientTail != nil {
+//				// ctx1, cancel := context.withtimeout(context.background(), time.second)
+//				fmt.Println("data is dirty reading from tail ", td.Topic.Name)
+//				// defer cancel()
+//				// if topic, err := server.ClientTail.ReadTopic(ctx1, &protobufRazpravljalnica.ReadTopicRequest{Id: td.Topic.Id}); err == nil {
+//				// 	fmt.Println("clean version succ retreived from the tail")
+//				// 	topicsResponse = append(topicsResponse, topic)
+//				// }
+//
+//			} else {
+//				panic("this is not supposed to be ever called")
+//			}
+//		}
+//		listTopicResponse := &protobufRazpravljalnica.ListTopicsResponse{Topics: topicsResponse}
+//		return listTopicResponse, nil
+//	}
+//
+//	func (server *MessageBoardServer) ListMessagessFromInner(ctx context.Context, empty *emptypb.Empty) (*protobufRazpravljalnica.ListMessagesResponse, error) {
+//		messagesData := server.TopicStorage.GetAllValues()
+//		messagesResponse := []*protobufRazpravljalnica.Message{}
+//		for _, msgData := range messagesData {
+//			if !msgData.Dirty {
+//				fmt.Println("current version already clean")
+//				messagesData = append(messagesData, msgData)
+//			} else if server.ClientTail != nil {
+//				ctx1, cancel := context.WithTimeout(context.Background(), time.Second)
+//				defer cancel()
+//				if msg, err := server.ClientTail.ReadMessage(ctx1, &protobufRazpravljalnica.ReadMessageRequest{Id: msgData.Id}); err != nil {
+//					return nil, err
+//				} else {
+//					fmt.Println("clean version succ retreived from the tail")
+//					messagesResponse = append(messagesResponse, msg)
+//				}
+//
+//			} else {
+//				panic("this is not supposed to be ever called")
+//			}
+//		}
+//		listTopicResponse := &protobufRazpravljalnica.ListMessagesResponse{Messages: messagesResponse}
+//		return listTopicResponse, nil
+//	}
+func (server *MessageBoardServer) SignalNewTail(ctx context.Context, in *protobufRazpravljalnica.SyncTailsRequest) (*protobufRazpravljalnica.SyncTailsACK, error) {
+	fmt.Println("master node has signaled that a new tail has been added")
+	conn, err := grpc.NewClient(in.NewTail.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer conn.Close()
+	fmt.Println("data transfer has been opened")
+	reconfigMode.Store(true)
+	reconfigModeCh = make(chan struct{})
+	grpcClient := protobufRazpravljalnica.NewMessageBoardClient(conn)
+	ctx2, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 	topicsData := server.TopicStorage.GetAllValues()
-	topicsResponse := []*protobufRazpravljalnica.Topic{}
-	for _, td := range topicsData {
-		if !td.Dirty {
-			fmt.Println("current version already clean")
-			topicsResponse = append(topicsResponse, td.Topic)
-		} else if server.ClientTail != nil {
-			ctx1, cancel := context.WithTimeout(context.Background(), time.Second)
-			defer cancel()
-			if topic, err := server.ClientTail.ReadTopic(ctx1, &protobufRazpravljalnica.ReadTopicRequest{Id: td.Topic.Id}); err != nil {
-				return nil, err
-			} else {
-				fmt.Println("clean version succ retreived from the tail")
-				topicsResponse = append(topicsResponse, topic)
-			}
-
-		} else {
-			panic("this is not supposed to be ever called")
-		}
+	messagesData := server.MessageStorage.GetAllValues()
+	usersData := server.UserStorage.GetAllValues()
+	users := []*protobufRazpravljalnica.User{}
+	messages := []*protobufRazpravljalnica.Message{}
+	topics := []*protobufRazpravljalnica.Topic{}
+	for _, topicData := range topicsData {
+		topic := convertDataToTopic(topicData)
+		topics = append(topics, topic)
 	}
-	listTopicResponse := &protobufRazpravljalnica.ListTopicsResponse{Topics: topicsResponse}
-	return listTopicResponse, nil
-}
-
-func (server *MessageBoardServer) ListMessagessFromInner(ctx context.Context, empty *emptypb.Empty) (*protobufRazpravljalnica.ListMessagesResponse, error) {
-	messagesData := server.TopicStorage.GetAllValues()
-	messagesResponse := []*protobufRazpravljalnica.Message{}
-	for _, msgData := range messagesData {
-		if !msgData.Dirty {
-			fmt.Println("current version already clean")
-			messagesData = append(messagesData, msgData)
-		} else if server.ClientTail != nil {
-			ctx1, cancel := context.WithTimeout(context.Background(), time.Second)
-			defer cancel()
-			if msg, err := server.ClientTail.ReadMessage(ctx1, &protobufRazpravljalnica.ReadMessageRequest{Id: msgData.Id}); err != nil {
-				return nil, err
-			} else {
-				fmt.Println("clean version succ retreived from the tail")
-				messagesResponse = append(messagesResponse, msg)
-			}
-
-		} else {
-			panic("this is not supposed to be ever called")
-		}
+	for _, messageData := range messagesData {
+		message := convertDataToMessage(messageData)
+		messages = append(messages, message)
 	}
-	listTopicResponse := &protobufRazpravljalnica.ListMessagesResponse{Messages: messagesResponse}
-	return listTopicResponse, nil
+	for _, userData := range usersData {
+		user := convertDataToUser(userData)
+		users = append(users, user)
+	}
+
+	if _, err = grpcClient.TransferData(ctx2, &protobufRazpravljalnica.TransferDataRequest{Users: users, Messages: messages, Topics: topics}); err != nil {
+		return nil, err
+	}
+
+	time.Sleep(time.Second * 2)
+	if reconfigMode.CompareAndSwap(true, false) {
+		close(reconfigModeCh)
+		fmt.Println(reconfigMode.Load())
+	}
+	fmt.Println("data transfer has ended")
+
+	return &protobufRazpravljalnica.SyncTailsACK{Succ: true}, nil
+
 }

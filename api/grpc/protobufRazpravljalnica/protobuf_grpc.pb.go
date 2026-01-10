@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: protobuf.proto
+// source: api/grpc/protobufRazpravljalnica/protobuf.proto
 
 package razpravljalnica
 
@@ -75,9 +75,9 @@ type MessageBoardClient interface {
 	AssignChainNode(ctx context.Context, in *AssignRequest, opts ...grpc.CallOption) (*ACK, error)
 	ForwardBatch(ctx context.Context, in *BatchRequest, opts ...grpc.CallOption) (*BatchResponse, error)
 	ReadLike(ctx context.Context, in *ReadLikeRequest, opts ...grpc.CallOption) (*Like, error)
-	ReadUser(ctx context.Context, in *ReadUserRequest, opts ...grpc.CallOption) (*User, error)
-	ReadTopic(ctx context.Context, in *ReadTopicRequest, opts ...grpc.CallOption) (*Topic, error)
-	ReadMessage(ctx context.Context, in *ReadMessageRequest, opts ...grpc.CallOption) (*Message, error)
+	ReadUser(ctx context.Context, in *ReadUserRequest, opts ...grpc.CallOption) (*UserData, error)
+	ReadTopic(ctx context.Context, in *ReadTopicRequest, opts ...grpc.CallOption) (*TopicData, error)
+	ReadMessage(ctx context.Context, in *ReadMessageRequest, opts ...grpc.CallOption) (*MessageData, error)
 	ListTopicsFromInner(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListTopicsResponse, error)
 	ListMessagesFromInner(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListMessagesResponse, error)
 }
@@ -257,8 +257,8 @@ func (c *messageBoardClient) ReadLike(ctx context.Context, in *ReadLikeRequest, 
 	return out, nil
 }
 
-func (c *messageBoardClient) ReadUser(ctx context.Context, in *ReadUserRequest, opts ...grpc.CallOption) (*User, error) {
-	out := new(User)
+func (c *messageBoardClient) ReadUser(ctx context.Context, in *ReadUserRequest, opts ...grpc.CallOption) (*UserData, error) {
+	out := new(UserData)
 	err := c.cc.Invoke(ctx, MessageBoard_ReadUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -266,8 +266,8 @@ func (c *messageBoardClient) ReadUser(ctx context.Context, in *ReadUserRequest, 
 	return out, nil
 }
 
-func (c *messageBoardClient) ReadTopic(ctx context.Context, in *ReadTopicRequest, opts ...grpc.CallOption) (*Topic, error) {
-	out := new(Topic)
+func (c *messageBoardClient) ReadTopic(ctx context.Context, in *ReadTopicRequest, opts ...grpc.CallOption) (*TopicData, error) {
+	out := new(TopicData)
 	err := c.cc.Invoke(ctx, MessageBoard_ReadTopic_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -275,8 +275,8 @@ func (c *messageBoardClient) ReadTopic(ctx context.Context, in *ReadTopicRequest
 	return out, nil
 }
 
-func (c *messageBoardClient) ReadMessage(ctx context.Context, in *ReadMessageRequest, opts ...grpc.CallOption) (*Message, error) {
-	out := new(Message)
+func (c *messageBoardClient) ReadMessage(ctx context.Context, in *ReadMessageRequest, opts ...grpc.CallOption) (*MessageData, error) {
+	out := new(MessageData)
 	err := c.cc.Invoke(ctx, MessageBoard_ReadMessage_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -334,9 +334,9 @@ type MessageBoardServer interface {
 	AssignChainNode(context.Context, *AssignRequest) (*ACK, error)
 	ForwardBatch(context.Context, *BatchRequest) (*BatchResponse, error)
 	ReadLike(context.Context, *ReadLikeRequest) (*Like, error)
-	ReadUser(context.Context, *ReadUserRequest) (*User, error)
-	ReadTopic(context.Context, *ReadTopicRequest) (*Topic, error)
-	ReadMessage(context.Context, *ReadMessageRequest) (*Message, error)
+	ReadUser(context.Context, *ReadUserRequest) (*UserData, error)
+	ReadTopic(context.Context, *ReadTopicRequest) (*TopicData, error)
+	ReadMessage(context.Context, *ReadMessageRequest) (*MessageData, error)
 	ListTopicsFromInner(context.Context, *emptypb.Empty) (*ListTopicsResponse, error)
 	ListMessagesFromInner(context.Context, *emptypb.Empty) (*ListMessagesResponse, error)
 	mustEmbedUnimplementedMessageBoardServer()
@@ -394,13 +394,13 @@ func (UnimplementedMessageBoardServer) ForwardBatch(context.Context, *BatchReque
 func (UnimplementedMessageBoardServer) ReadLike(context.Context, *ReadLikeRequest) (*Like, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadLike not implemented")
 }
-func (UnimplementedMessageBoardServer) ReadUser(context.Context, *ReadUserRequest) (*User, error) {
+func (UnimplementedMessageBoardServer) ReadUser(context.Context, *ReadUserRequest) (*UserData, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadUser not implemented")
 }
-func (UnimplementedMessageBoardServer) ReadTopic(context.Context, *ReadTopicRequest) (*Topic, error) {
+func (UnimplementedMessageBoardServer) ReadTopic(context.Context, *ReadTopicRequest) (*TopicData, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadTopic not implemented")
 }
-func (UnimplementedMessageBoardServer) ReadMessage(context.Context, *ReadMessageRequest) (*Message, error) {
+func (UnimplementedMessageBoardServer) ReadMessage(context.Context, *ReadMessageRequest) (*MessageData, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadMessage not implemented")
 }
 func (UnimplementedMessageBoardServer) ListTopicsFromInner(context.Context, *emptypb.Empty) (*ListTopicsResponse, error) {
@@ -898,7 +898,7 @@ var MessageBoard_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "protobuf.proto",
+	Metadata: "api/grpc/protobufRazpravljalnica/protobuf.proto",
 }
 
 const (
@@ -988,7 +988,7 @@ var ChainNode_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "protobuf.proto",
+	Metadata: "api/grpc/protobufRazpravljalnica/protobuf.proto",
 }
 
 const (
@@ -1226,5 +1226,5 @@ var MasterNode_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "protobuf.proto",
+	Metadata: "api/grpc/protobufRazpravljalnica/protobuf.proto",
 }

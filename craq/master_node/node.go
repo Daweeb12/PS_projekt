@@ -27,13 +27,13 @@ func NewNode(msgBoardClient pbRaz.MessageBoardClient, conn *grpc.ClientConn, id 
 	return &Node{msgBoardClient, conn, addr, id, nil, nil}
 }
 
-func (masterNode *MasterNode) GetRandomNode(ctx context.Context, empty *emptypb.Empty) (*pbRaz.GenerateRandomNodeResponse, error) {
+func (masterNode *MasterNode) GenerateRandomNode(ctx context.Context, empty *emptypb.Empty) (*pbRaz.GenerateRandomNodeResponse, error) {
 	masterNode.Mu.Lock()
 	defer masterNode.Mu.Unlock()
 	chainLen := masterNode.ChainLen.Load()
 	randNode := rand.Int63n(chainLen)
 	var counter int64 = 0
-	for node := masterNode.Head; node != nil; node = node.Next {
+	for node := masterNode.Head; node != nil && node!=masterNode.Tail; node = node.Next {
 		if counter == randNode {
 			nodeData := &pbRaz.NodeData{Id: node.Id, Address: node.Url}
 			generateRandomNodeResponse := &pbRaz.GenerateRandomNodeResponse{Node: nodeData}

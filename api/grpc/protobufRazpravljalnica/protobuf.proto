@@ -109,9 +109,9 @@ service  MessageBoard{
   rpc AssignChainNode(AssignRequest) returns (ACK);
   rpc ForwardBatch(BatchRequest) returns (BatchResponse);
   rpc ReadLike(ReadLikeRequest) returns (Like);
-  rpc ReadUser(ReadUserRequest) returns (User);
-  rpc ReadTopic(ReadTopicRequest) returns (Topic);
-  rpc ReadMessage(ReadMessageRequest) returns (Message);
+  rpc ReadUser(ReadUserRequest) returns (UserData);
+  rpc ReadTopic(ReadTopicRequest) returns (TopicData);
+  rpc ReadMessage(ReadMessageRequest) returns (MessageData);
   rpc ListTopicsFromInner(google.protobuf.Empty)returns (ListTopicsResponse);
   rpc ListMessagesFromInner(google.protobuf.Empty)returns (ListMessagesResponse);
 

@@ -33,3 +33,13 @@ func (topicData *TopicData) IsDirty() bool {
 func (userData *UserData) IsDirty() bool {
 	return userData.Dirty
 }
+
+func convertDataToTopic(topicData *TopicData) *pbRaz.Topic {
+	return topicData.Topic
+}
+func convertDataToUser(userData *UserData) *pbRaz.User {
+	return userData.User
+}
+func convertDataToMessage(messageData *MessageData) *pbRaz.Message {
+	return messageData.Message
+}
