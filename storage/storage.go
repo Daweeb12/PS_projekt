@@ -4,7 +4,7 @@ import "sync"
 
 // generic Lockable type to user for data sources
 type Lockable[T any] struct {
-	Mu   sync.Mutex
+	Mu   sync.RWMutex
 	Data T
 }
 
@@ -29,7 +29,7 @@ type LockableMap[K comparable, V any] struct {
 }
 
 func NewLockableMap[k comparable, v any]() *LockableMap[k, v] {
-	return &LockableMap[k, v]{Lockable: &Lockable[map[k]v]{Data: make(map[k]v), Mu: sync.Mutex{}}}
+	return &LockableMap[k, v]{Lockable: &Lockable[map[k]v]{Data: make(map[k]v), Mu: sync.RWMutex{}}}
 }
 
 func (lm *LockableMap[K, V]) Put(key K, value V) {
@@ -45,23 +45,23 @@ func (lm *LockableMap[K, V]) Delete(key K) {
 }
 
 func (lm *LockableMap[K, V]) Find(key K, f func(K) (V, error)) (V, error) {
-	lm.Lockable.Mu.Lock()
-	defer lm.Lockable.Mu.Unlock()
+	lm.Lockable.Mu.RLock()
+	defer lm.Lockable.Mu.RUnlock()
 	return f(key)
 }
 
 //
 
 func (lm *LockableMap[K, V]) GetValByKey(key K) (V, bool) {
-	lm.Lockable.Mu.Lock()
-	defer lm.Lockable.Mu.Unlock()
+	lm.Lockable.Mu.RLock()
+	defer lm.Lockable.Mu.RUnlock()
 	val, ok := lm.Lockable.Data[key]
 	return val, ok
 }
 
 func (lm *LockableMap[K, V]) GetAllValues() []V {
-	lm.Lockable.Mu.Lock()
-	defer lm.Lockable.Mu.Unlock()
+	lm.Lockable.Mu.RLock()
+	defer lm.Lockable.Mu.RUnlock()
 	listValues := []V{}
 	for _, message := range lm.Lockable.Data {
 		listValues = append(listValues, message)
