@@ -15,9 +15,17 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+// per-subscriber metadata
+type subscriber struct {
+	ch    chan *protobufRazpravljalnica.MessageEvent
+	drops atomic.Int32
+	once  sync.Once
+}
 
 var (
 	randMu              sync.Mutex
@@ -67,7 +75,7 @@ type MessageBoardServer struct {
 	ClientTail protobufRazpravljalnica.MessageBoardClient
 	// subscription support
 	subMu       sync.Mutex
-	subscribers map[int]chan *protobufRazpravljalnica.MessageEvent
+	subscribers map[int]*subscriber
 	nextSubId   int
 	seq         int64 // ADJUST ONLY USING ATOMIC
 }
@@ -77,7 +85,7 @@ func NewMessageBoardServer(id int64) *MessageBoardServer {
 	userStorage := storage.NewLockableMap[int64, *UserData]()
 	topicStorage := storage.NewLockableMap[int64, *TopicData]()
 	messageStorage := storage.NewLockableMap[int64, *MessageData]()
-	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0}
+	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]*subscriber), 0, 0}
 }
 
 // generates random user id and adds to map
@@ -371,9 +379,9 @@ func (server *MessageBoardServer) GetVersion() int64 {
 func (server *MessageBoardServer) publishEvent(ev *protobufRazpravljalnica.MessageEvent) {
 	server.subMu.Lock()
 	// copy subscribers to avoid holding lock while sending
-	subsMap := make(map[int]chan *protobufRazpravljalnica.MessageEvent, len(server.subscribers))
-	for id, ch := range server.subscribers {
-		subsMap[id] = ch
+	subsMap := make(map[int]*subscriber, len(server.subscribers))
+	for id, s := range server.subscribers {
+		subsMap[id] = s
 	}
 	server.subMu.Unlock()
 
@@ -388,12 +396,26 @@ func (server *MessageBoardServer) publishEvent(ev *protobufRazpravljalnica.Messa
 	}
 	fmt.Println("publishEvent: broadcasting seq", ev.SequenceNumber, "text:", text, "subs:", len(subsMap))
 
-	for id, eventChan := range subsMap {
+	const maxDrops = 5
+	for id, sub := range subsMap {
 		select {
-		case eventChan <- ev:
+		case sub.ch <- ev:
 			fmt.Println("publishEvent: delivered to subscriber", id, "seq", ev.SequenceNumber)
 		default:
-			fmt.Println("publishEvent: drop for subscriber", id)
+			// increment drop counter and disconnect if too many drops
+			drops := sub.drops.Add(1)
+			fmt.Println("publishEvent: drop for subscriber", id, "drops", drops)
+			if drops >= maxDrops {
+				// remove and close subscriber
+				server.subMu.Lock()
+				// ensure still present before deleting
+				if _, ok := server.subscribers[id]; ok {
+					delete(server.subscribers, id)
+				}
+				server.subMu.Unlock()
+				sub.once.Do(func() { close(sub.ch) })
+				fmt.Println("publishEvent: disconnected slow subscriber", id)
+			}
 		}
 	}
 }
@@ -524,11 +546,11 @@ func (server *MessageBoardServer) SignalNewTail(ctx context.Context, in *protobu
 }
 
 func (server *MessageBoardServer) SubscribeTopic(req *protobufRazpravljalnica.SubscribeTopicRequest, stream protobufRazpravljalnica.MessageBoard_SubscribeTopicServer) error {
-	eventChan := make(chan *protobufRazpravljalnica.MessageEvent, 64)
+	sub := &subscriber{ch: make(chan *protobufRazpravljalnica.MessageEvent, 256)}
 	server.subMu.Lock()
 	id := server.nextSubId
 	server.nextSubId++
-	server.subscribers[id] = eventChan
+	server.subscribers[id] = sub
 	server.subMu.Unlock()
 	fmt.Println("SubscribeTopic: registered subscriber", id)
 
@@ -560,7 +582,7 @@ func (server *MessageBoardServer) SubscribeTopic(req *protobufRazpravljalnica.Su
 			server.subMu.Lock()
 			delete(server.subscribers, id)
 			server.subMu.Unlock()
-			close(eventChan)
+			sub.once.Do(func() { close(sub.ch) })
 			return err
 		}
 		fmt.Println("SubscribeTopic: sent history ev seq", ev.SequenceNumber)
@@ -579,7 +601,7 @@ func (server *MessageBoardServer) SubscribeTopic(req *protobufRazpravljalnica.Su
 			select {
 			case <-done:
 				return
-			case ev, ok := <-eventChan:
+			case ev, ok := <-sub.ch:
 				if !ok {
 					return
 				}
@@ -596,7 +618,16 @@ func (server *MessageBoardServer) SubscribeTopic(req *protobufRazpravljalnica.Su
 						continue
 					}
 				}
-				if err := stream.Send(ev); err != nil {
+				// clone before sending to avoid shared-mutable proto issues
+				cloned := proto.Clone(ev).(*protobufRazpravljalnica.MessageEvent)
+				if err := stream.Send(cloned); err != nil {
+					// on send error, unregister and close channel
+					server.subMu.Lock()
+					if _, ok := server.subscribers[id]; ok {
+						delete(server.subscribers, id)
+					}
+					server.subMu.Unlock()
+					sub.once.Do(func() { close(sub.ch) })
 					return
 				}
 			}
@@ -608,7 +639,7 @@ func (server *MessageBoardServer) SubscribeTopic(req *protobufRazpravljalnica.Su
 	server.subMu.Lock()
 	delete(server.subscribers, id)
 	server.subMu.Unlock()
-	close(eventChan)
+	sub.once.Do(func() { close(sub.ch) })
 	fmt.Println("SubscribeTopic: unsubscribed", id)
 	return nil
 }
