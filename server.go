@@ -28,7 +28,8 @@ func Server(url string) {
 	}
 	grpcServer := grpc.NewServer()
 	msgBoardServer := messageboardserver.NewMessageBoardServer(0)
-	protobufRaz.RegisterMessageBoardServer(grpcServer, msgBoardServer.MessageBoardServer)
+	//protobufRaz.RegisterMessageBoardServer(grpcServer, msgBoardServer.MessageBoardServer)
+	protobufRaz.RegisterMessageBoardServer(grpcServer, msgBoardServer)
 	if hostname, err := os.Hostname(); err != nil {
 		panic(err)
 	} else {
