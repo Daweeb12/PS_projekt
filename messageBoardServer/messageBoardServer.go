@@ -15,9 +15,17 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+// per-subscriber metadata
+type subscriber struct {
+	ch    chan *protobufRazpravljalnica.MessageEvent
+	drops atomic.Int32
+	once  sync.Once
+}
 
 var (
 	randMu              sync.Mutex
@@ -50,7 +58,7 @@ func GenerateRand32[T comparable](s *storage.LockableMap[int64, T]) int64 {
 }
 
 type MessageBoardServer struct {
-	protobufRazpravljalnica.MessageBoardServer
+	protobufRazpravljalnica.UnimplementedMessageBoardServer
 	Id           int64
 	Version      atomic.Int64
 	UserStorage  *storage.LockableMap[int64, *UserData]
@@ -68,7 +76,7 @@ type MessageBoardServer struct {
 	ClientTail protobufRazpravljalnica.MessageBoardClient
 	// subscription support
 	subMu       sync.Mutex
-	subscribers map[int]chan *protobufRazpravljalnica.MessageEvent
+	subscribers map[int]*subscriber
 	nextSubId   int
 	seq         int64 // ADJUST ONLY USING ATOMIC
 }
@@ -80,6 +88,7 @@ func NewMessageBoardServer(id int64) *MessageBoardServer {
 	messageStorage := storage.NewLockableMap[int64, *MessageData]()
 	userLikes := storage.NewLockableMap[int64, bool]()
 	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, userLikes, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0}
+
 }
 
 // generates random user id and adds to map
@@ -196,19 +205,23 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 	message := &protobufRazpravljalnica.Message{Id: messageId, TopicId: topicId, UserId: userId, Text: in.Text, CreatedAt: timestamppb.Now()}
 	messageData := &MessageData{Message: message, Dirty: true}
 	server.MessageStorage.Put(messageId, messageData)
+	// If this is the tail, mark clean and publish the event locally.
 	if server.ClientNext == nil {
-		return message, nil
-	}
-	if fail() {
-		return nil, FailErr
-	}
-	if msg, err := server.PostMessage(ctx, in); err == nil {
 		messageData.Dirty = false
 		server.MessageStorage.Put(messageId, messageData)
-		// publish event
 		seq := atomic.AddInt64(&server.seq, 1)
 		event := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_POST, Message: message, EventAt: timestamppb.Now()}
 		server.publishEvent(event)
+		return message, nil
+	}
+
+	// Otherwise, forward to the next node in the chain.
+	if fail() {
+		return nil, FailErr
+	}
+	if msg, err := server.ClientNext.PostMessage(ctx, in); err == nil {
+		messageData.Dirty = false
+		server.MessageStorage.Put(messageId, messageData)
 		return msg, nil
 	} else if status.Code(err) == codes.Unavailable {
 		server.handleUnavailableNode()
@@ -373,26 +386,44 @@ func (server *MessageBoardServer) GetVersion() int64 {
 
 func (server *MessageBoardServer) publishEvent(ev *protobufRazpravljalnica.MessageEvent) {
 	server.subMu.Lock()
-	subs := len(server.subscribers)
+	// copy subscribers to avoid holding lock while sending
+	subsMap := make(map[int]*subscriber, len(server.subscribers))
+	for id, s := range server.subscribers {
+		subsMap[id] = s
+	}
 	server.subMu.Unlock()
 
-	// debug: show there are subscribers
-	if subs == 0 {
-		// no subscribers; nothing to do
+	if len(subsMap) == 0 {
 		return
 	}
 
-	server.subMu.Lock()
-	defer server.subMu.Unlock()
-	for id, eventChan := range server.subscribers {
+	// debug: print a short summary
+	text := "<nil>"
+	if ev != nil && ev.Message != nil {
+		text = ev.Message.GetText()
+	}
+	fmt.Println("publishEvent: broadcasting seq", ev.SequenceNumber, "text:", text, "subs:", len(subsMap))
+
+	const maxDrops = 5
+	for id, sub := range subsMap {
 		select {
-		case eventChan <- ev:
-			// delivered
+		case sub.ch <- ev:
 			fmt.Println("publishEvent: delivered to subscriber", id, "seq", ev.SequenceNumber)
 		default:
-			// subscriber is unreachable (likely a better way to do this but i can't find it)
-			fmt.Println("publishEvent: drop for subscriber", id)
-			_ = id
+			// increment drop counter and disconnect if too many drops
+			drops := sub.drops.Add(1)
+			fmt.Println("publishEvent: drop for subscriber", id, "drops", drops)
+			if drops >= maxDrops {
+				// remove and close subscriber
+				server.subMu.Lock()
+				// ensure still present before deleting
+				if _, ok := server.subscribers[id]; ok {
+					delete(server.subscribers, id)
+				}
+				server.subMu.Unlock()
+				sub.once.Do(func() { close(sub.ch) })
+				fmt.Println("publishEvent: disconnected slow subscriber", id)
+			}
 		}
 	}
 }
@@ -519,4 +550,103 @@ func (server *MessageBoardServer) SignalNewTail(ctx context.Context, in *protobu
 
 	return &protobufRazpravljalnica.SyncTailsACK{Succ: true}, nil
 
+}
+
+func (server *MessageBoardServer) SubscribeTopic(req *protobufRazpravljalnica.SubscribeTopicRequest, stream protobufRazpravljalnica.MessageBoard_SubscribeTopicServer) error {
+	sub := &subscriber{ch: make(chan *protobufRazpravljalnica.MessageEvent, 256)}
+	server.subMu.Lock()
+	id := server.nextSubId
+	server.nextSubId++
+	server.subscribers[id] = sub
+	server.subMu.Unlock()
+	fmt.Println("SubscribeTopic: registered subscriber", id)
+
+	// send history synchronously so clients receive past posts before live events
+	msgs := server.MessageStorage.GetAllValues()
+	for _, md := range msgs {
+		if md == nil || md.Message == nil {
+			continue
+		}
+		if md.Message.Id <= req.FromMessageId {
+			continue
+		}
+		if len(req.TopicId) > 0 {
+			found := false
+			for _, tid := range req.TopicId {
+				if md.Message.TopicId == tid {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		seq := atomic.AddInt64(&server.seq, 1)
+		ev := &protobufRazpravljalnica.MessageEvent{SequenceNumber: seq, Op: protobufRazpravljalnica.OpType_OP_POST, Message: md.Message, EventAt: timestamppb.Now()}
+		if err := stream.Send(ev); err != nil {
+			// cleanup and return
+			server.subMu.Lock()
+			delete(server.subscribers, id)
+			server.subMu.Unlock()
+			sub.once.Do(func() { close(sub.ch) })
+			return err
+		}
+		fmt.Println("SubscribeTopic: sent history ev seq", ev.SequenceNumber)
+	}
+
+	// forward live events from the subscriber channel to the gRPC stream in a dedicated goroutine
+	ctx := stream.Context()
+	done := make(chan struct{})
+	go func() {
+		<-ctx.Done()
+		close(done)
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case ev, ok := <-sub.ch:
+				if !ok {
+					return
+				}
+				// filter by topic ids if provided
+				if len(req.TopicId) > 0 {
+					matched := false
+					for _, tid := range req.TopicId {
+						if ev.Message != nil && ev.Message.TopicId == tid {
+							matched = true
+							break
+						}
+					}
+					if !matched {
+						continue
+					}
+				}
+				// clone before sending to avoid shared-mutable proto issues
+				cloned := proto.Clone(ev).(*protobufRazpravljalnica.MessageEvent)
+				if err := stream.Send(cloned); err != nil {
+					// on send error, unregister and close channel
+					server.subMu.Lock()
+					if _, ok := server.subscribers[id]; ok {
+						delete(server.subscribers, id)
+					}
+					server.subMu.Unlock()
+					sub.once.Do(func() { close(sub.ch) })
+					return
+				}
+			}
+		}
+	}()
+
+	// wait for context cancellation, then unregister and cleanup
+	<-done
+	server.subMu.Lock()
+	delete(server.subscribers, id)
+	server.subMu.Unlock()
+	sub.once.Do(func() { close(sub.ch) })
+	fmt.Println("SubscribeTopic: unsubscribed", id)
+	return nil
 }
