@@ -63,6 +63,7 @@ type MessageBoardServer struct {
 	Version      atomic.Int64
 	UserStorage  *storage.LockableMap[int64, *UserData]
 	TopicStorage *storage.LockableMap[int64, *TopicData]
+	LikeStorage  *storage.LockableMap[int64, bool]
 	//map of [3]{messageId , userId , topicId}
 	MessageStorage *storage.LockableMap[int64, *MessageData]
 	//map to track used message ids
@@ -85,7 +86,9 @@ func NewMessageBoardServer(id int64) *MessageBoardServer {
 	userStorage := storage.NewLockableMap[int64, *UserData]()
 	topicStorage := storage.NewLockableMap[int64, *TopicData]()
 	messageStorage := storage.NewLockableMap[int64, *MessageData]()
-	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]*subscriber), 0, 0}
+	userLikes := storage.NewLockableMap[int64, bool]()
+	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, userLikes, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0}
+
 }
 
 // generates random user id and adds to map
@@ -326,6 +329,11 @@ func (server *MessageBoardServer) LikeMessage(ctx context.Context, in *protobufR
 
 		<-reconfigModeCh
 	}
+	if _, ok := server.LikeStorage.GetValByKey(in.UserId); ok {
+		return nil, fmt.Errorf("user already liked message")
+	} else {
+		server.LikeStorage.SetValForKey(in.UserId, true)
+	}
 	message.Likes++
 	server.MessageStorage.Put(in.MessageId, message)
 
@@ -357,7 +365,7 @@ func (server *MessageBoardServer) GetMessages(ctx context.Context, in *protobufR
 
 func fail() bool {
 	p := rand.Float32()
-	if p < 0.25 {
+	if p < 0.0 {
 		return true
 	}
 	return false
@@ -430,7 +438,6 @@ func (server *MessageBoardServer) ReadMessage(ctx context.Context, in *protobufR
 }
 
 func (server *MessageBoardServer) ReadUser(ctx context.Context, in *protobufRazpravljalnica.ReadUserRequest) (*protobufRazpravljalnica.UserData, error) {
-	fmt.Println("id: ", in.Id)
 	if userData, ok := server.UserStorage.GetValByKey(in.Id); !ok {
 		return nil, DataNotAvailableErr
 	} else {
