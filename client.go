@@ -53,13 +53,32 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 		fmt.Println(" 11. help 						- Get command list")
 		fmt.Println()
 	*/
+	masterConn, err := grpc.NewClient(masterUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		panic("no master node found")
+	}
+	masterClient := razpravljalnica.NewMasterNodeClient(masterConn)
 
 	info()
 
 	for {
+		head, tail, err := GetHeadAndTail(masterClient)
 		fmt.Print("> ")
 		if !scanner.Scan() {
 			break
+		}
+		headClient, err := OpenGrpcClient(head.Address)
+		if err != nil {
+			fmt.Println(err)
+			time.Sleep(time.Second)
+			continue
+		}
+
+		tailClient, err := OpenGrpcClient(tail.Address)
+		if err != nil {
+			fmt.Println(err)
+			time.Sleep(time.Second)
+			continue
 		}
 
 		input := scanner.Text()
@@ -75,13 +94,14 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 		switch command {
+
 		case "createuser":
 			if len(parts) < 2 {
 				fmt.Println("Usage: createuser <name>")
 				cancel()
 				continue
 			}
-			handleCreateUser(ctx, client, parts[1])
+			handleCreateUser(ctx, &headClient, parts[1])
 
 		case "createtopic":
 			if len(parts) < 2 {
@@ -89,10 +109,10 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 				cancel()
 				continue
 			}
-			handleCreateTopic(ctx, client, parts[1])
+			handleCreateTopic(ctx, &headClient, parts[1])
 
 		case "listtopics":
-			handleListTopics(ctx, client)
+			handleListTopics(ctx, &tailClient)
 
 		case "getmessages":
 			if len(parts) < 2 {
@@ -106,7 +126,7 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 				cancel()
 				continue
 			}
-			handleGetMessages(ctx, client, topicID)
+			handleGetMessages(ctx, &tailClient, topicID)
 
 		case "postmessage":
 			if len(parts) < 3 {
@@ -126,7 +146,7 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 				continue
 			}
 			text := strings.Join(parts[2:], " ")
-			handlePostMessage(ctx, client, topicID, currentUserID, text)
+			handlePostMessage(ctx, &headClient, topicID, currentUserID, text)
 
 		case "likemessage":
 			if len(parts) < 3 {
@@ -151,7 +171,7 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 				cancel()
 				continue
 			}
-			handleLikeMessage(ctx, client, topicID, messageID, currentUserID)
+			handleLikeMessage(ctx, &headClient, topicID, messageID, currentUserID)
 
 		case "updatemessage":
 			if len(parts) < 4 {
@@ -177,7 +197,7 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 				continue
 			}
 			text := strings.Join(parts[3:], " ")
-			handleUpdateMessage(ctx, client, topicID, messageID, currentUserID, text)
+			handleUpdateMessage(ctx, &headClient, topicID, messageID, currentUserID, text)
 
 		case "deletemessage":
 			if len(parts) < 3 {
@@ -202,7 +222,7 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 				cancel()
 				continue
 			}
-			handleDeleteMessage(ctx, client, topicID, messageID, currentUserID)
+			handleDeleteMessage(ctx, &headClient, topicID, messageID, currentUserID)
 
 		case "setuser":
 			if len(parts) < 2 {
@@ -226,7 +246,6 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 
 		case "help":
 			info()
-			return
 
 		default:
 			fmt.Println("Unknown command. Type 'help' for available commands.")
@@ -446,4 +465,23 @@ func sendCreateUserReq(grpcClient razpravljalnica.MessageBoardClient) (*razpravl
 	createUserReq := &razpravljalnica.CreateUserRequest{Name: "david"}
 	user, err := grpcClient.CreateUser(ctx, createUserReq)
 	return user, err
+}
+
+func OpenGrpcClient(url string) (razpravljalnica.MessageBoardClient, error) {
+	conn, err := grpc.NewClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+	return razpravljalnica.NewMessageBoardClient(conn), nil
+}
+
+func GetHeadAndTail(masterClient razpravljalnica.MasterNodeClient) (*razpravljalnica.NodeData, *razpravljalnica.NodeData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if clusterInfo, err := masterClient.GetClusterState(ctx, &emptypb.Empty{}); err != nil {
+		return nil, nil, err
+	} else {
+		return clusterInfo.Head, clusterInfo.Tail, nil
+	}
+
 }

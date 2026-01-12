@@ -73,7 +73,7 @@ func StartMasterServer(url string, id int64) {
 	go func(masterNode *master_node.MasterNode) {
 		for {
 
-			//fmt.Println()
+			fmt.Println(masterNode.Head, " ", masterNode.Tail)
 			if err := masterNode.CheckHealth(); status.Code(err) == codes.Unavailable {
 			} else {
 				fmt.Println(err)

@@ -87,7 +87,7 @@ func NewMessageBoardServer(id int64) *MessageBoardServer {
 	topicStorage := storage.NewLockableMap[int64, *TopicData]()
 	messageStorage := storage.NewLockableMap[int64, *MessageData]()
 	userLikes := storage.NewLockableMap[int64, bool]()
-	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, userLikes, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]chan *protobufRazpravljalnica.MessageEvent), 0, 0}
+	return &MessageBoardServer{protobufRazpravljalnica.UnimplementedMessageBoardServer{}, id, atomic.Int64{}, userStorage, topicStorage, userLikes, messageStorage, nil, nil, nil, nil, nil, nil, nil, sync.Mutex{}, make(map[int]*subscriber), 0, 0}
 
 }
 
@@ -365,7 +365,7 @@ func (server *MessageBoardServer) GetMessages(ctx context.Context, in *protobufR
 
 func fail() bool {
 	p := rand.Float32()
-	if p < 0.0 {
+	if p < 0.2 {
 		return true
 	}
 	return false
