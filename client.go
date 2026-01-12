@@ -60,21 +60,31 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 	masterClient := razpravljalnica.NewMasterNodeClient(masterConn)
 
 	info()
+	var (
+		tailConn   *grpc.ClientConn = nil
+		headConn   *grpc.ClientConn = nil
+		headClient razpravljalnica.MessageBoardClient
+		tailClient razpravljalnica.MessageBoardClient
+	)
 
 	for {
+		if tailConn != nil {
+			tailConn.Close()
+			headConn.Close()
+		}
 		head, tail, err := GetHeadAndTail(masterClient)
 		fmt.Print("> ")
 		if !scanner.Scan() {
 			break
 		}
-		headClient, err := OpenGrpcClient(head.Address)
+		headClient, headConn, err = OpenGrpcClient(head.Address)
 		if err != nil {
 			fmt.Println(err)
 			time.Sleep(time.Second)
 			continue
 		}
 
-		tailClient, err := OpenGrpcClient(tail.Address)
+		tailClient, tailConn, err = OpenGrpcClient(tail.Address)
 		if err != nil {
 			fmt.Println(err)
 			time.Sleep(time.Second)
@@ -92,7 +102,6 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 
 		// Create a context with timeout for each request
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-
 		switch command {
 
 		case "createuser":
@@ -467,12 +476,12 @@ func sendCreateUserReq(grpcClient razpravljalnica.MessageBoardClient) (*razpravl
 	return user, err
 }
 
-func OpenGrpcClient(url string) (razpravljalnica.MessageBoardClient, error) {
+func OpenGrpcClient(url string) (razpravljalnica.MessageBoardClient, *grpc.ClientConn, error) {
 	conn, err := grpc.NewClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return razpravljalnica.NewMessageBoardClient(conn), nil
+	return razpravljalnica.NewMessageBoardClient(conn), conn, nil
 }
 
 func GetHeadAndTail(masterClient razpravljalnica.MasterNodeClient) (*razpravljalnica.NodeData, *razpravljalnica.NodeData, error) {
