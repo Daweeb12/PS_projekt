@@ -3,21 +3,18 @@
 ## Navodila za minimalno implementacijo
 
 Terminal A (server):
-> ./PSMain -p=9000 -id=0
+> ./PS_projekkt -p=9000 -id=0
 
 Terminal B (server):
-> ./PSMain -p=9001 -id=1
+> ./PS_projekkt -p=9001 -id=1
 
 Terminal B.1 (server):
-> ./PSMain -p=9002 -id=2
+> ./PS_projekkt -p=9002 -id=n  , n < 5 
 ...
 
 Terminal C (client):
-> go run ./cmd/client_run -- -url=localhost:9001
-
+./PS_projekt -id=n , n >= 5 
 Terminal C.1 (client):
-> go run ./cmd/client_run -- -url=localhost:9001
-...
 
 ## Primer funkcije
 > createuser <ime>
