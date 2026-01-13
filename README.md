@@ -4,13 +4,13 @@
 ./compile.sh
 go build . 
 Terminal A (server):
-> ./PS_projekkt -p=9000 -id=0
+> ./PS_projekt -p=9000 -id=0
 
 Terminal B (server):
-> ./PS_projekkt -p=9001 -id=1
+> ./PS_projekt -p=9001 -id=1
 
 Terminal B.1 (server):
-> ./PS_projekkt -p=9002 -id=n  , n < 5 
+> ./PS_projekt -p=9002 -id=n  , n < 5 
 
 
 Terminal C (client):
