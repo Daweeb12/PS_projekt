@@ -255,6 +255,24 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 
 		case "help":
 			info()
+		case "subscribe":
+			var topicIds []int64
+			client , clientConn , err := OpenGrpcClient(tail.Address)
+			if err != nil {
+				continue
+			}
+			defer clientConn.Close()
+			if len(parts) > 1 {
+				for _, p := range parts[1:] {
+					id, err := strconv.ParseInt(p, 10, 64)
+					if err != nil {
+						fmt.Printf("invalid topic id: %s\n", p)
+						continue
+					}
+					topicIds = append(topicIds, id)
+				}
+			}
+			go startSubscribeBackground(&client, topicIds)
 
 		default:
 			fmt.Println("Unknown command. Type 'help' for available commands.")
@@ -493,4 +511,31 @@ func GetHeadAndTail(masterClient razpravljalnica.MasterNodeClient) (*razpravljal
 		return clusterInfo.Head, clusterInfo.Tail, nil
 	}
 
+}
+func startSubscribeBackground(client *razpravljalnica.MessageBoardClient, topicIds []int64) {
+	ctx := context.Background()
+	req := &razpravljalnica.SubscribeTopicRequest{TopicId: topicIds, FromMessageId: 0}
+	stream, err := (*client).SubscribeTopic(ctx, req)
+	if err != nil {
+		fmt.Printf("subscribe failed: %v\n", err)
+		return
+	}
+	fmt.Printf("subscription started for topics=%v\n", topicIds)
+	for {
+		ev, err := stream.Recv()
+		if err != nil {
+			fmt.Printf("subscription ended: %v\n", err)
+			return
+		}
+		if ev == nil {
+			continue
+		}
+		msgId := int64(0)
+		txt := ""
+		if ev.Message != nil {
+			msgId = ev.Message.GetId()
+			txt = ev.Message.GetText()
+		}
+		fmt.Printf("EVENT: op=%v seq=%d msg_id=%v text=%q\n", ev.Op, ev.SequenceNumber, msgId, txt)
+	}
 }

@@ -1,7 +1,8 @@
 # PS_projekt
 
 ## Navodila za minimalno implementacijo
-
+./compile.sh
+go build . 
 Terminal A (server):
 > ./PS_projekkt -p=9000 -id=0
 
@@ -10,7 +11,7 @@ Terminal B (server):
 
 Terminal B.1 (server):
 > ./PS_projekkt -p=9002 -id=n  , n < 5 
-...
+
 
 Terminal C (client):
 ./PS_projekt -id=n , n >= 5 

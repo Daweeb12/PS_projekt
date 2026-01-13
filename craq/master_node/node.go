@@ -32,10 +32,7 @@ func (masterNode *MasterNode) GenerateRandomNode(ctx context.Context, empty *emp
 	defer masterNode.Mu.Unlock()
 	chainLen := masterNode.ChainLen.Load()
 	randNode := rand.Int63n(chainLen)
-	var counter int64 = 0
-	if masterNode.Head == nil {
-		return nil, nodeNotFound
-	}
+	var counter int64 = 1
 	for node := masterNode.Head; node != nil; node = node.Next {
 		if counter == randNode {
 			nodeData := &pbRaz.NodeData{Id: node.Id, Address: node.Url}
@@ -44,6 +41,5 @@ func (masterNode *MasterNode) GenerateRandomNode(ctx context.Context, empty *emp
 		}
 		counter++
 	}
-
 	return nil, nodeNotFound
 }
