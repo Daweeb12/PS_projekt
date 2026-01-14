@@ -20,6 +20,8 @@ func main() {
 		StartMasterServer(masterUrl, 0)
 	} else if id < 5 {
 		AddMsgBoardServer(url, masterUrl, id)
+	} else if id == 5 {
+		UpdateClientTest(masterUrl)
 	} else {
 		//start master node server
 		Client(masterUrl)

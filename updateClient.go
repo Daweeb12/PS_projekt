@@ -20,12 +20,11 @@ func UpdateClientTest(url string) {
 	}
 	defer conn.Close()
 	grpcClient := pbRaz.NewMasterNodeClient(conn)
-
-	for {
+	topicId, userId := func() (int64, int64) {
 		headInfo, tailInfo, err := fetchDetails(grpcClient)
 		if err != nil {
 			fmt.Println(err)
-			continue
+			return -1, -1
 		}
 		fmt.Println("HEAD: ", headInfo)
 		fmt.Println("TAIL: ", tailInfo)
@@ -33,16 +32,52 @@ func UpdateClientTest(url string) {
 		headConn, err := grpc.NewClient(headInfo.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			fmt.Println(err)
-			continue
+			return -1, -1
 		}
 		defer headConn.Close()
 		headClient := pbRaz.NewMessageBoardClient(headConn)
-		if user, err := sendCreateUserReq(headClient); err != nil {
+		user, err := sendCreateUserReq(headClient)
+		if err != nil {
 			fmt.Println(err)
 		} else {
 			fmt.Println("CREATE USER ", user)
 		}
-
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		if topic, err := headClient.CreateTopic(ctx, &pbRaz.CreateTopicRequest{Name: "topic"}); err != nil {
+			fmt.Println(err)
+			return -1, -1
+		} else {
+			fmt.Println("CREATE TOPIC: ", topic.Id)
+			return topic.Id, user.Id
+		}
+	}()
+	time.Sleep(10 * time.Second)
+	errCh := make(chan error)
+	for {
+		func(chan error, int64, int64) {
+			headInfo, tailInfo, err := fetchDetails(grpcClient)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println("HEAD: ", headInfo)
+			fmt.Println("TAIL: ", tailInfo)
+			fmt.Println()
+			headConn, err := grpc.NewClient(headInfo.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			defer headConn.Close()
+			headClient := pbRaz.NewMessageBoardClient(headConn)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			if _, err := headClient.PostMessage(ctx, &pbRaz.PostMessageRequest{TopicId: topicId, UserId: userId, Text: "this is a test"}); err != nil {
+				fmt.Println(err)
+				errCh <- err
+			}
+		}(errCh, topicId, userId)
 		time.Sleep(time.Second * 2)
 	}
 }

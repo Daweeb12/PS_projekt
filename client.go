@@ -257,7 +257,7 @@ func mainLoop(client *razpravljalnica.MessageBoardClient) {
 			info()
 		case "subscribe":
 			var topicIds []int64
-			client , clientConn , err := OpenGrpcClient(tail.Address)
+			client, clientConn, err := OpenGrpcClient(tail.Address)
 			if err != nil {
 				continue
 			}

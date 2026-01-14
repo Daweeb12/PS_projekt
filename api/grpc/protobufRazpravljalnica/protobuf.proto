@@ -120,11 +120,13 @@ service  MessageBoard{
 message CreateUserRequest {
   string name = 1;
   int64 version = 2 ; 
+  int64 id = 3 ; 
 }
 
 message CreateTopicRequest {
   string name = 1;
   int64 version = 2 ; 
+  int64 id = 3 ; 
 }
 
 message PostMessageRequest {
@@ -132,6 +134,7 @@ message PostMessageRequest {
   int64 user_id = 2;
   string text = 3;
   int64 version = 4 ; 
+  int64 id = 5 ;
 }
 
 message DeleteMessageRequest {

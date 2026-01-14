@@ -105,8 +105,13 @@ func (server *MessageBoardServer) CreateUser(ctx context.Context, in *protobufRa
 	if server.ClientPrev == nil {
 		in.Version = server.GetVersion()
 	}
-
-	id := GenerateRand32(server.UserStorage)
+	var id int64
+	if server.ClientPrev == nil {
+		id = GenerateRand32(server.UserStorage)
+		in.Id = id 
+	} else {
+		id = in.Id
+	}
 	user := &protobufRazpravljalnica.User{Id: id, Name: in.Name}
 	userData := &UserData{User: user, Dirty: true}
 	server.UserStorage.Put(int64(id), userData)
@@ -154,8 +159,14 @@ func (server *MessageBoardServer) CreateTopic(ctx context.Context, in *protobufR
 	if server.ClientPrev == nil {
 		in.Version = server.GetVersion()
 	}
+	var id int64
+	if server.ClientPrev == nil {
+		id = GenerateRand32(server.UserStorage)
+		in.Id = id 
+	} else {
+		id = in.Id
+	}
 
-	id := GenerateRand32(server.TopicStorage)
 	topic := &protobufRazpravljalnica.Topic{Name: name, Id: id}
 	topicData := &TopicData{Topic: topic, Dirty: true}
 	if server.ClientNext == nil {
@@ -197,11 +208,18 @@ func (server *MessageBoardServer) PostMessage(ctx context.Context, in *protobufR
 	if reconfigMode.Load() {
 
 		<-reconfigModeCh
+
 	}
 	if server.ClientPrev == nil {
 		in.Version = server.GetVersion()
 	}
-	messageId := GenerateRand32(server.MessageStorage)
+
+	var messageId int64
+	if server.ClientPrev == nil {
+		messageId = GenerateRand32(server.UserStorage)
+	} else {
+		messageId = in.Id
+	}
 	message := &protobufRazpravljalnica.Message{Id: messageId, TopicId: topicId, UserId: userId, Text: in.Text, CreatedAt: timestamppb.Now()}
 	messageData := &MessageData{Message: message, Dirty: true}
 	server.MessageStorage.Put(messageId, messageData)
@@ -365,7 +383,7 @@ func (server *MessageBoardServer) GetMessages(ctx context.Context, in *protobufR
 
 func fail() bool {
 	p := rand.Float32()
-	if p < 0.2 {
+	if p < 0.0 {
 		return true
 	}
 	return false
